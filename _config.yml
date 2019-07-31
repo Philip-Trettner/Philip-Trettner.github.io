@@ -6,15 +6,15 @@ language: 'en-uk'
 words_per_minute: 200
 
 # edit baseurl to simply '/' if using as your personal page (instead of a project page)
-baseurl: ""
+baseurl: /
 
 # Website info
 title: Artificial Mind's Blog
 description: Thoughts about Graphics, C++, Computer Science, and more
-cover: /assets/images/blog-cover.jpg
-logo: /assets/images/blog-icon.png
-logo_dark: /assets/images/favicon.png
-favicon: /assets/images/favicon.png
+cover: assets/images/blog-cover.jpg
+logo: assets/images/blog-icon.png
+logo_dark: assets/images/favicon.png
+favicon: assets/images/favicon.png
 production_url: https://artificial-mind.net/
 source_url: https://github.com/Philip-Trettner/Philip-Trettner.github.io
 CNAME: artificial-mind.net #add cname for website to be created
