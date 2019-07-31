@@ -10,8 +10,8 @@ baseurl: /
 baseurl_fix: /
 
 # Website info
-title: Artificial Mind's Blog
-description: Thoughts about Graphics, C++, Computer Science, and more
+title: Artificial Mind
+description: Thoughts about Graphics, C++, Optimization, and more
 cover: assets/images/blog-cover.jpg
 logo: assets/images/blog-icon.png
 logo_dark: assets/images/favicon.png
