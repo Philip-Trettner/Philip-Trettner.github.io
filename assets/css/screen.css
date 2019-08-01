@@ -149,9 +149,9 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 10vw 4vw;
-    min-height: 200px;
-    max-height: 350px;
+    padding: 4vw 4vw;
+    min-height: 150px;
+    max-height: 250px;
     text-align: center;
 }
 
@@ -599,8 +599,8 @@ The first (most recent) post in the list is styled to be bigger than the others 
 }
 
 .post-full-image {
-    margin: 0 -10vw -165px;
-    height: 800px;
+    margin: 0 -10vw -85px;
+    height: 400px;
     background: var(--lightgrey) center center;
     background-size: cover;
     border-radius: 5px;
@@ -608,15 +608,15 @@ The first (most recent) post in the list is styled to be bigger than the others 
 
 @media (max-width: 1170px) {
     .post-full-image {
-        margin: 0 -4vw -100px;
-        height: 600px;
+        margin: 0 -4vw -85px;
+        height: 400px;
         border-radius: 0;
     }
 }
 
 @media (max-width: 800px) {
     .post-full-image {
-        height: 400px;
+        height: 300px;
     }
 }
 
@@ -1870,7 +1870,7 @@ Usage (In Ghost editor):
 .site-footer {
     position: relative;
     padding-top: 20px;
-    padding-bottom: 60px;
+    padding-bottom: 20px;
     color: #fff;
     background: color(var(--darkgrey) l(-15%));
 }
