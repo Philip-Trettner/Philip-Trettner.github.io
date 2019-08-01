@@ -4,7 +4,7 @@ current: post
 cover:  assets/images/lake_berryessa.jpg
 navigation: True
 title: Special Treatment for Literal Zero
-date: 2019-07-31 02:00:00
+date: 2019-08-01 02:00:00
 tags: [c++, fun]
 class: post-template
 subclass: 'post'
@@ -50,7 +50,7 @@ The reason this worked was because there is a [special rule](https://en.cpprefer
 
 This little curious gem led me to rethink a recent API design problem we faced.
 
-We were writing a custom 256 bit integer type, basically a `BigInteger` but with a fixed representation using 4 `uint64_t` internally.
+We were writing a custom 256 bit integer type, basically a `BigInteger` but with a fixed representation using 4 `uint64_t`s internally.
 This was performance sensitive code and we wanted everything to be maximally efficient.
 
 Our `i256` type uses two's complement and the check `x < 0` can be done by simply testing if the highest bit is set.
