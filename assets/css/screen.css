@@ -1043,6 +1043,10 @@ Usage (In Ghost editor):
     border: color(var(--whitegrey) l(-1%) s(-5%)) 1px solid;
 }
 
+.highlighter-rouge {
+    max-width: 100%;
+}
+
 
 /* 7.1. Subscribe Form
 /* ---------------------------------------------------------- */
