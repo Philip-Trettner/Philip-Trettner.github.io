@@ -18,7 +18,7 @@ std::cout << "Hello Blog" << std::endl;
 Welcome to my blog!
 
 Over the years I had to solve many technical challenges and developed quite strong opinions about various design choice in library development.
-My colleagues are my go-to target when discussing and designing APIs or solving intricate problems.
+My colleagues are my go-to target when discussing and designing APIs or solving intricate problems though I plan to change that:
 
 Whiteboard discussions are ephemeral while blog posts are eternal---or so they say.
 
