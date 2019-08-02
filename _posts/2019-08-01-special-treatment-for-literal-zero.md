@@ -203,5 +203,6 @@ With creative use of some slightly more arcane C++ rules we were able to remove 
 I probably have to say that I consider this thing more in the category of "fun with C++" than "production-ready code", so please use your own judgement before adopting it.
 A possible middle ground could be 
 ```cpp
-[[deprecated("use is_below_zero(X) instead")]] bool operator<(X, literal_zero);
+[[deprecated("use is_below_zero(X) instead")]]
+bool operator<(X, literal_zero);
 ```
