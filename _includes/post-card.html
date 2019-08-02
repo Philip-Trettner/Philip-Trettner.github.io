@@ -12,11 +12,10 @@
                 <header class="post-card-header">
                     {% if post.tags.size > 0 %}
                         {% for tag in post.tags %}
-                            {% if forloop.index == post.tags.size %}
-                                <span class="post-card-tags">{{ tag | capitalize }}</span>
-                            {% else %}
-                               <span class="post-card-tags">{{ tag | capitalize }}</span>
+                            {% if forloop.index > 1 %}
+                                | 
                             {% endif %}
+                            <span class="post-card-tags" style="display: inline">{{ tag | capitalize }}</span>
                         {% endfor %}
                     {% endif %}
 
