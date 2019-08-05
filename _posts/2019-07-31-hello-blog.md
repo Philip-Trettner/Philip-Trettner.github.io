@@ -9,6 +9,7 @@ tags: [meta]
 class: post-template
 subclass: 'post'
 author: philip
+excerpt: Welcome to my blog!
 ---
 
 ```cpp

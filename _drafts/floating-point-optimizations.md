@@ -9,6 +9,7 @@ tags: [c++, optimization]
 class: post-template
 subclass: 'post'
 author: philip
+excerpt: 
 ---
 
 Many posts have been written about elaborate magic involving IEEE 754 floating point numbers.
@@ -64,19 +65,17 @@ Let's make a small table what this means for different operations:
 
 | f | f + 0.0 | f - 0.0 | f + -0.0 | f - -0.0 |
 | ---------- |
-| +0.0 | +0.0 | +0.0 | +0.0 | +0.0 |
+| +0.0 | +0.0 | +0.0 | +0.0 | **-0.0** |
 | -0.0 | **+0.0** | -0.0 | -0.0 | -0.0 |
 
 (Cases where the expression cannot be legally replaced by `f` are **bold**.)
-
-So ... ehm, yeah ... `f - -0.0` is faster than `f + 0.0`. (TODO: godbolt)
 
 One might wonder why this whole `+0.0` vs `-0.0` business is useful.
 Remember that `1.0 / +0.0 == Inf` and `1.0 / -0.0 == -Inf` and you can easily construct pathological cases:
 
 ```cpp
-std::cout << std::max(3.0, 1.0 / (-1e-200 / 1e200 +  0.0)) << std::endl; // Inf
-std::cout << std::max(3.0, 1.0 / (-1e-200 / 1e200 - -0.0)) << std::endl; // 3
+std::cout << std::max(3.0, 1.0 / (-1e-200 / 1e200 + 0.0)) << std::endl; // Inf
+std::cout << std::max(3.0, 1.0 / (-1e-200 / 1e200 - 0.0)) << std::endl; // 3
 ```
 
 

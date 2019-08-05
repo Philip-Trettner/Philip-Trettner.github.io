@@ -9,6 +9,7 @@ tags: [c++, fun]
 class: post-template
 subclass: 'post'
 author: philip
+excerpt: 'Or: how to make "foo(0)" and "foo(1)" call different functions'
 ---
 
 ## TL;DR:
