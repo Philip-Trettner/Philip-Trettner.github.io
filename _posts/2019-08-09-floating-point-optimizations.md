@@ -4,7 +4,7 @@ current: post
 cover:  assets/images/light-lines.jpeg
 navigation: True
 title: Basic Floating Point Optimizations
-date: 2019-08-02 01:00:00
+date: 2019-08-09 01:00:00
 tags: [c++, optimization]
 class: post-template
 subclass: 'post'
