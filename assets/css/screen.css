@@ -806,7 +806,7 @@ Usage (In Ghost editor):
 }
 
 .post-full-content code {
-    padding: 0 5px 2px;
+    padding: 1px 5px 1px;
     font-size: 0.8em;
     line-height: 1em;
     font-weight: 400!important;

@@ -1,5 +1,6 @@
 @import "global.css";
 .highlight pre { background: color(var(--darkgrey) l(-3%)); }
+code.highlighter-rouge,
 .highlight span { font-family: 'Fira Code', monospace; }
 .highlight .hll { background: color(var(--darkgrey) l(-3%)); }
 .highlight .c { color: #65ca4c } /* Comment */

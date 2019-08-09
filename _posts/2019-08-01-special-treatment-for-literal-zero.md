@@ -1,7 +1,7 @@
 ---
 layout: post
 current: post
-cover:  assets/images/lake_berryessa.jpg
+cover:  assets/images/zero-wall.jpeg
 navigation: True
 title: Special Treatment for Literal Zero
 date: 2019-08-01 02:00:00
