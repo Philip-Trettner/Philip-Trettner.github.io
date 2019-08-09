@@ -99,6 +99,6 @@ This especially implies that everything that is representable will be computed e
 ## TODO
 
 * TODO: links
-* other interesting "missed" optimizations: `f * 0` (`-ffinite-math-only -fno-signed-zeros`), `f - f` (`-ffinite-math-only`), `f * 2` to `f + f`
+* other interesting "missed" optimizations: `f * 0` (`-ffinite-math-only -fno-signed-zeros`), `f - f` (`-ffinite-math-only`), `f * 2` to `f + f`, `f / 2` to `f * 0.5`
 * table with what can be optimized and which flags are required
 * clamp instead of max
