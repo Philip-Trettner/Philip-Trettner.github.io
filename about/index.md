@@ -1,7 +1,7 @@
 ---
 layout: page
 current: about
-title: About
+title: About Me
 navigation: true
 logo: 'assets/images/ghost.png'
 class: page-template
@@ -11,7 +11,7 @@ subclass: 'post page'
 My name is Philip Trettner, I'm currently pursuing my PhD in computer graphics at the [RWTH Aachen University](https://www.rwth-aachen.de), Germany.
 
 This is my personal blog where I write about programming, C++, computer science, optimization, technology, and more.
-I'm mainly interested in the following humble list of topics:
+I'm mainly interested in:
 
 * Computer Graphics
 * C++ and OpenGL

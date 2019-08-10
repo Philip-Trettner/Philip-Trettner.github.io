@@ -10,10 +10,10 @@ baseurl: /
 baseurl_fix: /
 
 # Website info
-title: Artificial Mind
+title: artificial::mind
 description: Thoughts about Graphics, C++, Optimization, and more
 cover: assets/images/blog-cover.jpg
-logo: assets/images/blog-icon.png
+logo: assets/images/title-logo-alpha.png
 logo_dark: assets/images/favicon.png
 favicon: assets/images/favicon.png
 production_url: https://artificial-mind.net/
