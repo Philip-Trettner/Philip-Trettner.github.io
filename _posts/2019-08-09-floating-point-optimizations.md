@@ -12,11 +12,24 @@ author: philip
 excerpt: 'Why is "f + 0.0" slower than "f - 0.0"?'
 ---
 
+Ever seen some people write `f * 0.5` when they mean `f / 2`?
+
+Or if the compiler is able to optimize the `f * 1.0` that you added for clarity?
+
+Maybe you wrote `f + f` instead of `f * 2` as a clever optimization?
+
+Modern compilers are basically magic, _but do they actually perform these optimizations?_
+And, more importantly, _why is `f + 0.0` slower than `f - 0.0`?_
+
+
+## Preliminaries
+
 Many posts have been written about elaborate magic involving IEEE 754 floating point numbers.
 Some of my favorites include the [fast inverse square root](https://en.wikipedia.org/wiki/Fast_inverse_square_root#History_and_investigation) (commonly attributed to John Carmack though the method is much older), [basically everything from the Random ASCII blog](https://randomascii.wordpress.com/category/floating-point/), and the [reverse-Z depth test](https://developer.nvidia.com/content/depth-precision-visualized) for rendering.
 
 In this post I want to take a look at less flashy, more foundational things.
-We're going over a couple small optimizations that we probably expected from our compiler but that are not actually legal or only work due to slightly arcane rules.
+We're going over a couple small optimizations that we probably expected from our compilers.
+Some of them are performed but others are not actually legal or only work due to slightly arcane rules.
 
 While this might apply to other languages as well, I'm most familiar with C++ which I'll be using for this post.
 We will assume that our C++ implementation uses:
