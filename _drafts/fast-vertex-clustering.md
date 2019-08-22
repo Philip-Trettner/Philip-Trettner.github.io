@@ -90,14 +90,32 @@ This code is written for maximal readability and there is some low-hanging fruit
 * We are already using [`std::span`](https://en.cppreference.com/w/cpp/container/span) (officially C++20 but many backports available) for the mesh to support any data-contiguous input.
 * `std::map` is probably slower than its `unordered_` version if the mesh is large, though we will roll our own hash structure later on anyways.
 * We know the size of the `result` vector and could easily call `.reserve(output_triangles.size())`. Even faster would be to pass the `result` vector by reference (to potentially reuse memory), `.resize` it to the desired size and directly access the elements we want (to bypass the "do I have to increase capacity?" check in `.emplace_back`).
-
+ 
 TODO: images
 
 
 ## Minimizing Quadrics
 
+There are multiple ways to choose the "optimal" point for each grid cell.
+
 TODO: images of different representative points (center, centroid, quadric)
 
+A slightly more sophisticated but still common way to choose the point is by using so-called _quadrics_.
+A quadric is a quadratic function in multiple variables.
+For our purposes we can define the following function \\(f : \mathbb{R}^3 \rightarrow \mathbb{R}\\):
+\\[ f(x) = x^T A x + b^T x + c \\]
+with \\( A \in \mathbb{R}^{3 \times 3} \\), \\( b \in \mathbb{R}^{3} \\), and \\( c \in \mathbb{R} \\).
+Functions of this type can represent [many quadratic distances](https://en.wikipedia.org/wiki/Quadric#Euclidean_space).
+We want to find the point that minimizes this distance, i.e. the quadric.
+If \\(A\\) is non-singular, this point can be efficiently found by solving \\(A x = b\\), i.e. by computing
+\\[x_{\text{min}} = A^{-1} b.\\]
+Note how \\(c\\) does not influence the result because it is just a constant offset.
+
+One important distance function is distance of point-to-plane.
+Given a normal \\(n\\) and a point \\(p\\), we can define \\(A = n n^T\\) and \\(b = n n^T p\\).
+(\\(n^T p\\) is the distance between origin and plane.)
+
+TODO: continue
 
 ## Custom Hash Maps
 
@@ -198,6 +216,11 @@ This usually works if the attributes behave roughly linearly but easily fails in
 
 ## Conclusion
 
+TODO
+
+For more information, see papers of TODO!
+I'm actually in the process of writing a paper about making quadrics substantially more robust and how not to rely on arbitrary regularization.
+I'll keep you posted.
 
 ## TODO
 
