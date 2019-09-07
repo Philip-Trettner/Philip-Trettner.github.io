@@ -4,7 +4,7 @@ current: post
 cover:  assets/images/tunnel-speed.jpeg
 navigation: True
 title: "Performance of std::function"
-date: 2019-09-07 01:00:00
+date: 2019-09-07 12:20:00
 tags: [c++, optimization]
 class: post-template
 subclass: 'post'
