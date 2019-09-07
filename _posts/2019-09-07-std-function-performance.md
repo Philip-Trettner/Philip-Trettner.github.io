@@ -127,6 +127,9 @@ benchmark(funH); // 1.25 ns / op (6 cycles / op)
 benchmark(funI); // 1.25 ns / op (6 cycles / op)
 ```
 
+This suggests that only A and D are inlined and that there is some additional optimization possible when using `std::function` with a lambda.
+
+
 ## Constructing a `std::function`
 
 We can also measure how long it takes to construct or copy a `std::function`:
