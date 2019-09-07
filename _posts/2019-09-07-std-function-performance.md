@@ -116,10 +116,10 @@ auto funI = std::function<fun_t>([](float a, float b) { return a + b; });
 The results:
 
 ```cpp
-benchmark(funA); // 0.22 ns / op (1 cycle / op)
+benchmark(funA); // 0.22 ns / op (1 cycle  / op)
 benchmark(funB); // 1.04 ns / op (5 cycles / op)
 benchmark(funC); // 1.04 ns / op (5 cycles / op)
-benchmark(funD); // 0.22 ns / op (1 cycle / op)
+benchmark(funD); // 0.22 ns / op (1 cycle  / op)
 benchmark(funE); // 1.67 ns / op (8 cycles / op)
 benchmark(funF); // 1.67 ns / op (8 cycles / op)
 benchmark(funG); // 1.67 ns / op (8 cycles / op)
