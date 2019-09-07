@@ -181,7 +181,7 @@ My benchmarks suggest that on a modern microarchitecture the following overhead 
 | constructing a `std::function` from a capturing lambda | 21+ cycles |
 
 A word of caution: the benchmarks really only represent the overhead relative to `a + b`.
-Different function show slightly different overhead behavior as they might use different scheduler ports and execution units that might overlap differently with what the loop requires.
+Different functions show slightly different overhead behavior as they might use different scheduler ports and execution units that might overlap differently with what the loop requires.
 Also, a lot of this depends on how willing the compiler is to inline.
 
 We've only measured the throughput.
