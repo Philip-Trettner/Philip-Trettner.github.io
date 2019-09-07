@@ -63,7 +63,7 @@ The loop itself has some overhead and sometimes the compiler will unroll parts o
 
 ## Baseline
 
-Our subject in the following benchmarks with be an Intel Core i9-9900K running at 4.8 GHz (a modern high-end consumer CPU at the time of writing).
+Our test system in the following benchmarks is an Intel Core i9-9900K running at 4.8 GHz (a modern high-end consumer CPU at the time of writing).
 The code is compiled with `clang-7` and the `libcstd++` standard library using `-O2` and `-march=native`.
 
 We start with a few basic tests:
