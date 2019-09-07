@@ -12,7 +12,7 @@ author: philip
 excerpt: 'How bad is it really?'
 ---
 
-Everyone knows that you have to avoid `std::function` if you care about performance.
+Popular folklore demands that you avoid `std::function` if you care about performance.
 
 But is it really true?
 How bad is it?
