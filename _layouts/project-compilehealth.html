@@ -26,26 +26,118 @@ into the {body} of the default.hbs template -->
 
 <script type="text/javascript" src="{{ site.baseurl_fix }}assets/compile-health/compile-health-data.js"></script>
 
+<style>
+    span.code {
+        font-family: Fira Code,monospace;
+    }
+    span.cpp-header {
+        font-weight: bold;
+        color: #569cd6;
+    }
+    .tabulator-row.tabulator-group {
+        min-height: 0 !important;
+        background: #ddd;
+    }
+    .tabulator-row .tabulator-cell {
+        padding: 5px !important;
+    }
+    .tabulator-row {
+        min-height: 20px !important;
+    }
+    .tabulator-row.tabulator-row-odd {
+        background: #f6f6f6;
+    }
+</style>
+
 <script>
 $(function() {
+
+    function round1(v) {
+        return (Math.round(v * 10) / 10).toFixed(1)
+    }
+
     // post-process data a bit
-    var i
+    var data = [];
+    var i;
     for (i = 0; i < table_data.length; ++i)
     {
         var e = table_data[i];
         var t = e.compile_time - e.compile_time_base
-        e.impact = Math.round(t / 0.2 * 100); // 200ms is considered bad!
-        e.ctime = (Math.round(t * 10000) / 10).toFixed(1) + " ms";
+        e.impact = t / 0.2 * 100; // 200ms is considered bad!
+        e.ctime_raw = Math.round(t * 1000);
+        e.ctime = e.ctime_raw + " ms";
+        // e.argstr = "<pre>" + e.argstr + "</pre>";
+
+        if (i > 0 && data[data.length - 1].file == e.file)
+        {
+            data[data.length -1 ]._children.push(e);
+        }
+        else // new file
+        {
+            c = JSON.parse(JSON.stringify(e));
+            e._children = [c];
+            data.push(e);
+        }
     }
+    for (i = 0; i < data.length; ++i)
+    {
+        var e = data[i];
+        e.argstr = "...";
+        e.compiler_name = "...";
+        var imsum = 0;
+        var ctmin = e.ctime_raw
+        var ctmax = e.ctime_raw
+        var locmin = e.line_count
+        var locmax = e.line_count
+        var binmin = e.object_size
+        var binmax = e.object_size
+        var j;
+        for (j = 0; j < e._children.length; ++j)
+        {
+            var c = e._children[j];
+            imsum += c.impact;
+            if (c.ctime_raw < ctmin) ctmin = c.ctime_raw;
+            if (c.ctime_raw > ctmax) ctmax = c.ctime_raw;
+            if (c.line_count < locmin) locmin = c.line_count;
+            if (c.line_count > locmax) locmax = c.line_count;
+            if (c.object_size < binmin) binmin = c.object_size;
+            if (c.object_size > binmax) binmax = c.object_size;
+
+            c.name = " <span class='code'>" + c.compiler + " " + c.argstr + "</span>";
+            c.lines = round1(c.line_count / 1000) + " kLoC";
+            c.binsize = round1(c.object_size / 1024) + " kB";
+        }
+        e.name = "<span class='code cpp-header'>" + e.name
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;") + "</span>";
+        e.impact = imsum / e._children.length;
+        e.ctime = ctmin + " .. " + ctmax + " ms";
+        e.lines = round1(locmin / 1000) + " .. " + round1(locmax / 1000) + " kLoC";
+        e.binsize = round1(binmin / 1024) + " .. " + round1(binmax / 1024) + " kB";
+    }
+
+    var headerAlignRight = function(cell, formatterParams, onRendered) {
+        cell.getElement().style.textAlign = 'right'; 
+        return '' + cell.getValue()
+    }
+
+    // TODO:
+    // - tooltips for timing and lines of code
+    // - tooltips for headers explaining shit
+    // - info icon on headers (to signal tooltip)
+    // - more entries / libs
+    // - filtering
+    // - fix sorting
 
     // see http://tabulator.info/docs/4.6/quickstart
     var table = new Tabulator("#compile-table", {
-        height: "1000",
-        data: table_data,
+        height: "100%",
+        data: data,
         layout: "fitColumns",
         groupBy: "project",
+        dataTree: true,
         columns: [
-            {title: "File", field: "name"},
+            {title: "File", field: "name", formatter: "html"},
             {title: "Version", field: "version", width: 100},
             {title: "Impact", field: "impact", width: 100, formatter:"progress", formatterParams:{
                 min:0,
@@ -53,10 +145,17 @@ $(function() {
                 color:["green", "orange", "red"],
                 legend: "",
             }},
-            {title: "Timing", field: "ctime", width: 100, hozAlign: "right"},
+            {title: "Timing", field: "ctime", width: 140, hozAlign: "right", titleFormatter: headerAlignRight},
+            {title: "Lines", field: "lines", width: 160, hozAlign: "right", titleFormatter: headerAlignRight},
+            {title: "Binary", field: "binsize", width: 120, hozAlign: "right", titleFormatter: headerAlignRight},
+            // {title: "Compiler", field: "compiler_name", width: 120},
+            // {title: "Args", field: "argstr", formatter: "html"},
         ],
         groupStartOpen:function(value, count, data, group){
             return value == "C++ Standard Library";
+        },
+        rowClick:function(e, row){
+            row.treeToggle();
         },
     });
 });
