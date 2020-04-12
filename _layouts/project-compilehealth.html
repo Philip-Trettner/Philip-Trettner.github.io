@@ -63,6 +63,7 @@ $(function() {
     {
         var e = table_data[i];
         var t = e.compile_time - e.compile_time_base
+        if (t < 0) t = 0;
         e.impact = t / 0.2 * 100; // 200ms is considered bad!
         e.ctime_raw = Math.round(t * 1000);
         e.ctime = e.ctime_raw + " ms";
@@ -95,7 +96,7 @@ $(function() {
         for (j = 0; j < e._children.length; ++j)
         {
             var c = e._children[j];
-            imsum += c.impact;
+            imsum = c.impact > imsum ? c.impact : imsum;
             if (c.ctime_raw < ctmin) ctmin = c.ctime_raw;
             if (c.ctime_raw > ctmax) ctmax = c.ctime_raw;
             if (c.line_count < locmin) locmin = c.line_count;
@@ -110,7 +111,7 @@ $(function() {
         e.name = "<span class='code cpp-header'>" + e.name
          .replace(/</g, "&lt;")
          .replace(/>/g, "&gt;") + "</span>";
-        e.impact = imsum / e._children.length;
+        e.impact = imsum; // / e._children.length;
         e.ctime = ctmin + " .. " + ctmax + " ms";
         e.lines = round1(locmin / 1000) + " .. " + round1(locmax / 1000) + " kLoC";
         e.binsize = round1(binmin / 1024) + " .. " + round1(binmax / 1024) + " kB";
@@ -143,7 +144,7 @@ $(function() {
 
     // see http://tabulator.info/docs/4.6/quickstart
     var table = new Tabulator("#compile-table", {
-        height: "100%",
+        height: "1600",
         data: data,
         layout: "fitColumns",
         groupBy: "project",
