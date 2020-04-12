@@ -1,0 +1,68 @@
+---
+layout: default
+current: compilehealth
+class: compilehealth-template
+disqus: false
+header_extra: project-compilehealth.html
+---
+
+<!-- < default -->
+<!-- The tag above means: insert everything in this file
+into the {body} of the default.hbs template -->
+
+<!-- The big featured header, it uses blog cover image as a BG if available -->
+<header class="site-header outer">
+    <div class="inner">
+        {% include site-nav.html %}
+    </div>
+</header>
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+{{ content }}
+
+<div id="compile-table"></div>
+
+<script type="text/javascript" src="{{ site.baseurl_fix }}assets/compile-health/compile-health-data.js"></script>
+
+<script>
+$(function() {
+    // post-process data a bit
+    var i
+    for (i = 0; i < table_data.length; ++i)
+    {
+        var e = table_data[i];
+        var t = e.compile_time - e.compile_time_base
+        e.impact = Math.round(t / 0.2 * 100); // 200ms is considered bad!
+        e.ctime = (Math.round(t * 10000) / 10).toFixed(1) + " ms";
+    }
+
+    // see http://tabulator.info/docs/4.6/quickstart
+    var table = new Tabulator("#compile-table", {
+        height: "1000",
+        data: table_data,
+        layout: "fitColumns",
+        groupBy: "project",
+        columns: [
+            {title: "File", field: "name"},
+            {title: "Version", field: "version", width: 100},
+            {title: "Impact", field: "impact", width: 100, formatter:"progress", formatterParams:{
+                min:0,
+                max:100,
+                color:["green", "orange", "red"],
+                legend: "",
+            }},
+            {title: "Timing", field: "ctime", width: 100, hozAlign: "right"},
+        ],
+        groupStartOpen:function(value, count, data, group){
+            return value == "C++ Standard Library";
+        },
+    });
+});
+</script>
+
+<!-- /post -->
+
+<!-- The #contentFor helper here will send everything inside it up to the matching #block helper found in default.hbs -->
+{% include page-scripts.html %}
