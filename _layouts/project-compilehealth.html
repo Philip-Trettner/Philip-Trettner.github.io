@@ -39,7 +39,6 @@ into the {body} of the default.hbs template -->
 
     .tabulator-row.tabulator-group {
         min-height: 0 !important;
-        background: #ddd;
     }
 
     .tabulator-row .tabulator-cell {
@@ -265,7 +264,7 @@ into the {body} of the default.hbs template -->
                     sorter: make_str_sorter("version"),
                 },
                 {
-                    title: 'Impact <i class="fas fa-info-circle"></i>',
+                    title: '<span header-tooltip="TODO">Impact <i class="fas fa-info-circle"></i></span>',
                     field: "impact",
                     width: 110,
                     formatter: "progress",
@@ -323,6 +322,17 @@ into the {body} of the default.hbs template -->
 
         $(window).resize(adaptSize);
         adaptSize();
+
+        $(document).tooltip({
+            items: "[header-tooltip]",
+            content: function() {
+                var e = $(this);
+                if (e.is("[header-tooltip]"))
+                    return e.attr("header-tooltip");
+            },
+            show: 100,
+            hide: 100,
+        })
     });
 </script>
 
