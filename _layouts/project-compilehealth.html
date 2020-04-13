@@ -4,6 +4,7 @@ current: compilehealth
 class: compilehealth-template
 disqus: false
 header_extra: project-compilehealth.html
+hide_footer: true
 ---
 
 <!-- < default -->
@@ -60,6 +61,14 @@ into the {body} of the default.hbs template -->
     .result-nr {
         color: rgb(33, 57, 77);
     }
+
+    div.tabulator-header-filter {
+        position: absolute !important;
+        top: 8px;
+        left: 140px;
+        right: 30px;
+        width: auto !important;
+    }
 </style>
 
 <script>
@@ -101,6 +110,15 @@ into the {body} of the default.hbs template -->
             return rangeR(1, 1024, "kB", v0, v1);
         }
 
+        function computeImpact(e) {
+            var t = e.ctime_raw; // in ms
+            var i = 0;
+
+            i += 100 * (1 - 200 / (200 + t))
+
+            return i;
+        }
+
         // post-process data a bit
         var data = [];
         var i;
@@ -108,11 +126,15 @@ into the {body} of the default.hbs template -->
             var e = table_data[i];
             var t = e.compile_time - e.compile_time_base
             if (t < 0) t = 0;
-            e.impact = t / 0.2 * 100; // 200ms is considered bad!
             e.ctime_raw = Math.round(t * 1000);
+            e.impact = computeImpact(e);
             e.object_size_full = e.object_size;
             e.object_size -= e.object_size_base;
             // e.argstr = "<pre>" + e.argstr + "</pre>";
+
+            e.ctime_max = e.ctime_raw
+            e.binsize_max = e.object_size
+            e.lines_max = e.line_count
 
             if (i > 0 && data[data.length - 1].file == e.file) {
                 data[data.length - 1]._children.push(e);
@@ -124,8 +146,11 @@ into the {body} of the default.hbs template -->
                 data.push(e);
             }
         }
+        var proj_idx = 0
         for (i = 0; i < data.length; ++i) {
             var e = data[i];
+            if (i > 0 && data[i - 1].project != e.project)
+                proj_idx += 1
             e.argstr = "...";
             e.compiler_name = "...";
             var imsum = 0;
@@ -158,6 +183,10 @@ into the {body} of the default.hbs template -->
             e.ctime = formatTime(ctmin, ctmax);
             e.lines = formatLoC(locmin, locmax);
             e.binsize = formatBin(binmin, binmax);
+            e.ctime_max = ctmax
+            e.lines_max = locmax
+            e.binsize_max = binmax
+            e.project_idx = proj_idx
         }
 
         var headerAlignRight = function (cell, formatterParams, onRendered) {
@@ -165,20 +194,46 @@ into the {body} of the default.hbs template -->
             return '' + cell.getValue()
         }
 
+        var make_sorter = function (name) {
+            return function (a, b, aRow, bRow, column, dir, sorterParams) {
+                var da = aRow.getData();
+                var db = bRow.getData();
+                if (da.project_idx != db.project_idx)
+                    return dir == "asc" ? da.project_idx - db.project_idx : db.project_idx - da.project_idx
+                else
+                    return da[name] - db[name]
+            };
+        }
+        var make_str_sorter = function (name) {
+            return function (a, b, aRow, bRow, column, dir, sorterParams) {
+                var da = aRow.getData();
+                var db = bRow.getData();
+                if (da.project_idx != db.project_idx)
+                    return dir == "asc" ? da.project_idx - db.project_idx : db.project_idx - da.project_idx
+                else {
+                    var sa = da[name];
+                    var sb = db[name];
+                    return sa < sb ? -1 : sa > sb ? 1 : 0;
+                }
+            };
+        }
+
+        var file_filter = function (headerValue, rowValue, rowData, filterParams) {
+            if (headerValue === "")
+                return true;
+            return rowData.file.toLowerCase().includes(headerValue.toLowerCase())
+        }
+
         // TODO:
         // - tooltips for timing and lines of code
         // - tooltips for headers explaining shit
         // - more entries / libs
-        // - filtering
-        // - fix sorting
         // - two-level nodes for multi-version libs?
-        // - better fit to data (width)
-        // - responsive layout (responsive entries in columns)
         // - compress data.js a bit (by not repeating everything)
         // - proper merge of multiple data files (add your own json!)
         // - specify test system
         // - filter by c++ version (and update ranges)
-        // - links to projects in group header
+        // - links to projects in group header (poject_url)
 
         // tooltip content (exact numbers):
         // - on timing: compile, preproc, baselines
@@ -187,27 +242,69 @@ into the {body} of the default.hbs template -->
 
         // see http://tabulator.info/docs/4.6/quickstart
         var table = new Tabulator("#compile-table", {
-            height: "1600",
+            height: "1000",
             data: data,
             layout: "fitColumns",
             groupBy: "project",
             dataTree: true,
+            responsiveLayout: "collapse",
             columns: [
-                { title: "File", field: "name", formatter: "html" },
-                { title: "Version", field: "version", width: 100 },
                 {
-                    title: 'Impact <i class="fas fa-info-circle"></i>', field: "impact", width: 110, formatter: "progress", formatterParams: {
+                    title: "Header / Source",
+                    field: "name",
+                    formatter: "html",
+                    sorter: make_str_sorter("name"),
+                    headerFilter: true,
+                    headerFilterFunc: file_filter,
+                    minWidth: 300,
+                },
+                {
+                    title: "Version",
+                    field: "version",
+                    width: 100,
+                    sorter: make_str_sorter("version"),
+                },
+                {
+                    title: 'Impact <i class="fas fa-info-circle"></i>',
+                    field: "impact",
+                    width: 110,
+                    formatter: "progress",
+                    formatterParams: {
                         min: 0,
                         max: 100,
                         color: ["green", "orange", "red"],
                         legend: "",
-                    }
+                    },
+                    sorter: make_sorter("impact"),
                 },
-                { title: 'Timing <i class="fas fa-info-circle"></i>', field: "ctime", width: 140, titleFormatter: "html", formatter: "html", hozAlign: "right", titleFormatter: headerAlignRight },
-                { title: 'Lines <i class="fas fa-info-circle"></i>', field: "lines", width: 160, formatter: "html", hozAlign: "right", titleFormatter: headerAlignRight },
-                { title: 'Binary <i class="fas fa-info-circle"></i>', field: "binsize", width: 120, formatter: "html", hozAlign: "right", titleFormatter: headerAlignRight },
-                // {title: "Compiler", field: "compiler_name", width: 120},
-                // {title: "Args", field: "argstr", formatter: "html"},
+                {
+                    title: 'Timing <i class="fas fa-info-circle"></i>',
+                    field: "ctime",
+                    width: 140,
+                    titleFormatter: "html",
+                    formatter: "html",
+                    hozAlign: "right",
+                    titleFormatter: headerAlignRight,
+                    sorter: make_sorter("ctime_max"),
+                },
+                {
+                    title: 'Lines <i class="fas fa-info-circle"></i>',
+                    field: "lines",
+                    width: 160,
+                    formatter: "html",
+                    hozAlign: "right",
+                    titleFormatter: headerAlignRight,
+                    sorter: make_sorter("lines_max"),
+                },
+                {
+                    title: 'Binary <i class="fas fa-info-circle"></i>',
+                    field: "binsize",
+                    width: 120,
+                    formatter: "html",
+                    hozAlign: "right",
+                    titleFormatter: headerAlignRight,
+                    sorter: make_sorter("binsize_max"),
+                },
             ],
             groupStartOpen: function (value, count, data, group) {
                 return value == "C++ Standard Library";
@@ -217,6 +314,15 @@ into the {body} of the default.hbs template -->
             },
             groupToggleElement: "header",
         });
+
+        function adaptSize() {
+            var wh = $(".site-wrapper").height();
+            var y = $("#compile-table").offset().top
+            table.setHeight(wh - y);
+        }
+
+        $(window).resize(adaptSize);
+        adaptSize();
     });
 </script>
 
