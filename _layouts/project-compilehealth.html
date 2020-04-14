@@ -79,6 +79,10 @@ into the {body} of the default.hbs template -->
     div.ui-tooltip.cell-tooltip {
         max-width: 500px !important;
     }
+
+    html {
+        overflow-y: hidden !important;
+    }
 </style>
 
 <div class="content">
@@ -392,7 +396,6 @@ into the {body} of the default.hbs template -->
             layout: "fitColumns",
             groupBy: "project",
             dataTree: true,
-            responsiveLayout: "collapse",
             columns: [
                 {
                     title: "Header / Source",
@@ -516,7 +519,7 @@ into the {body} of the default.hbs template -->
         });
 
         function adaptSize() {
-            var wh = $(".site-wrapper").height();
+            var wh = $(window).height();
             var y = $("#compile-table").offset().top
             table.setHeight(wh - y - 1);
         }
