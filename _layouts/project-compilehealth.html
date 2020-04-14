@@ -21,12 +21,6 @@ into the {body} of the default.hbs template -->
 <!-- Everything inside the #post tags pulls data from the post -->
 <!-- #post -->
 
-{{ content }}
-
-<div id="compile-table"></div>
-
-<script type="text/javascript" src="{{ site.baseurl_fix }}assets/compile-health/compile-health-data.js"></script>
-
 <style>
     span.code {
         font-family: Fira Code, monospace;
@@ -68,68 +62,216 @@ into the {body} of the default.hbs template -->
         right: 30px;
         width: auto !important;
     }
+
+    .content {
+        padding-left: 16px;
+    }
+
+    .content h2 {
+        margin-top: 16px;
+    }
+
+    .content li {
+        margin-top: 1px;
+        margin-bottom: 1px;
+    }
+
+    div.ui-tooltip.cell-tooltip {
+        max-width: 500px !important;
+    }
 </style>
 
+<div class="content">
+    {{ content }}
+</div>
+
+<div id="compile-table"></div>
+
+<div id="impact-tooltip" style="display: none;">
+    This score estimates the impact of the file a build.
+    It is a combination of the compile time and the resulting binary size
+    (see blog post for details).
+</div>
+
+<div id="timing-tooltip" style="display: none;">
+    The increase of compile time when adding <span class="code cpp-header">#include &lt;file&gt;</span> to an otherwise
+    empty file.
+    Hover over individual entries for details.
+</div>
+
+<div id="lines-tooltip" style="display: none;">
+    Lines of code of the file and its transitive dependencies.
+    This is after preprocessing, without comments, and only lines with at least one alphanumerical character are
+    counted.
+    Hover over individual entries for details.
+</div>
+
+<div id="binary-tooltip" style="display: none;">
+    The increase in binary object size when adding <span class="code cpp-header">#include &lt;file&gt;</span> to an
+    otherwise empty file.
+    This includes all exported symbols, external symbols, data symbols, and debug information (if applicable).
+    Hover over individual entries for details.
+</div>
+
 <script>
-    $(function () {
 
-        function round1(v) {
-            if (Math.round(v * 10) / 10 == 0)
-                return "0"
-            return (Math.round(v * 10) / 10).toFixed(1)
+    function round1(v) {
+        if (Math.round(v * 10) / 10 == 0)
+            return "0"
+        return (Math.round(v * 10) / 10).toFixed(1)
+    }
+
+    function rangeR(d, div, suffix, v0, v1) {
+        var prefix = "<span class='result-nr'>";
+        if (suffix !== "")
+            suffix = " <span class='unit-suffix'>" + suffix + "</span>";
+
+        var only_first = v1 === undefined
+        v0 /= div;
+        v1 /= div;
+        if (d == 0) {
+            v0 = Math.round(v0)
+            v1 = Math.round(v1)
         }
+        else if (d == 1) {
+            v0 = round1(v0)
+            v1 = round1(v1)
+        }
+        if (only_first || v0 == v1)
+            return prefix + v0 + suffix;
+        return prefix + v0 + " .. " + v1 + "</span>" + suffix;
+    }
+    function rangeRA(d, div, suffix, vs) {
+        return rangeR(d, div, suffix, vs[0], vs[1]);
+    }
 
-        function rangeR(d, div, suffix, v0, v1) {
-            var prefix = "<span class='result-nr'>";
-            suffix = "</span> <span class='unit-suffix'>" + suffix + "</span>";
+    function formatTime(v0, v1) {
+        return rangeR(0, 1, "ms", v0, v1);
+    }
+    function formatLoC(v0, v1) {
+        return rangeR(1, 1000, "kLoC", v0, v1);
+    }
+    function formatBin(v0, v1) {
+        return rangeR(1, 1024, "kB", v0, v1);
+    }
 
-            var only_first = v1 === undefined
-            v0 /= div;
-            v1 /= div;
-            if (d == 0) {
-                v0 = Math.round(v0)
-                v1 = Math.round(v1)
+    function computeImpactTime(e) {
+        var t = e.ctime_raw; // in ms
+        return Math.round(100 * (1 - 200 / (200 + t)));
+    }
+    function computeImpactBin(e) {
+        var b = e.object_size; // in B
+        return Math.round(100 * (1 - 100 * 1024 / (100 * 1024 + b)));
+    }
+    function computeImpact(e) {
+        return computeImpactBin(e) + computeImpactTime(e);
+    }
+
+    function getRange(e, name) {
+        var min = e[name];
+        var max = e[name];
+
+        if (e._children) {
+            var i
+            for (i = 0; i < e._children.length; ++i) {
+                var v = e._children[i][name];
+
+                if (v < min) min = v;
+                if (v > max) max = v;
             }
-            else if (d == 1) {
-                v0 = round1(v0)
-                v1 = round1(v1)
-            }
-            if (only_first || v0 == v1)
-                return prefix + v0 + suffix;
-            return prefix + v0 + " .. " + v1 + suffix;
         }
 
-        function formatTime(v0, v1) {
-            return rangeR(0, 1, "ms", v0, v1);
-        }
-        function formatLoC(v0, v1) {
-            return rangeR(1, 1000, "kLoC", v0, v1);
-        }
-        function formatBin(v0, v1) {
-            return rangeR(1, 1024, "kB", v0, v1);
-        }
+        return [min, max];
+    }
 
-        function computeImpact(e) {
-            var t = e.ctime_raw; // in ms
-            var i = 0;
-
-            i += 100 * (1 - 200 / (200 + t))
-
-            return i;
+    function makeTTable(vals) {
+        var tt = "<table>";
+        var i;
+        for (i = 0; i < vals.length; ++i) {
+            tt += "<tr>";
+            tt += "<td style='text-align:right;'>"
+            tt += vals[i][0];
+            tt += "</td>";
+            tt += "<td>&nbsp;<span class='unit-suffix'>";
+            tt += vals[i][1];
+            tt += "</span></td>";
+            tt += "</tr>";
         }
+        tt += "</table>";
+        return tt
+    }
 
+    function buildTimeTooltip(e) {
+        return makeTTable([
+            [rangeRA(0, 1, "", getRange(e, "ctime_raw")), "ms compile time (increase)"],
+            [rangeRA(0, 1, "", getRange(e, "compile_time")), "ms compile time (total)"],
+            [rangeRA(0, 1, "", getRange(e, "compile_time_base")), "ms compile time (baseline)"],
+            [rangeRA(0, 1, "", getRange(e, "ptime_raw")), "ms preprocessing time (increase)"],
+            [rangeRA(0, 1, "", getRange(e, "preprocessing_time")), "ms preprocessing time (total)"],
+            [rangeRA(0, 1, "", getRange(e, "preprocessing_time_base")), "ms preprocessing time (baseline)"],
+        ]);
+    }
+
+    function buildImpactTooltip(e) {
+        return makeTTable([
+            [rangeRA(0, 1, "", getRange(e, "impact")), "impact score"],
+            [rangeRA(0, 1, "", getRange(e, "impact_time")), "impact score (from timing)"],
+            [rangeRA(0, 1, "", getRange(e, "impact_bin")), "impact score (from binary)"],
+        ]);
+    }
+
+    function buildLineTooltip(e) {
+        return makeTTable([
+            [rangeRA(0, 1, "", getRange(e, "line_count")), "LoC stripped"],
+            [rangeRA(0, 1, "", getRange(e, "line_count_raw")), "LoC raw"],
+        ]);
+    }
+
+    function buildBinaryTooltip(e) {
+        return makeTTable([
+            [rangeRA(0, 1, "", getRange(e, "object_size")), "B obj size (increase)"],
+            [rangeRA(0, 1, "", getRange(e, "object_size_full")), "B obj size (total)"],
+            [rangeRA(0, 1, "", getRange(e, "undefined_symbol_count")), "external symbol(s)"],
+            [rangeRA(0, 1, "", getRange(e, "code_symbol_count")), "exported symbol(s)"],
+            [rangeRA(0, 1, "", getRange(e, "data_symbol_count")), "data symbol(s)"],
+            [rangeRA(0, 1, "", getRange(e, "undefined_symbol_size")), "B external symbol size"],
+            [rangeRA(0, 1, "", getRange(e, "code_symbol_size")), "B exported symbol size"],
+            [rangeRA(0, 1, "", getRange(e, "data_symbol_size")), "B data symbol size"],
+        ]);
+    }
+
+    function createTable(table, table_data) {
         // post-process data a bit
         var data = [];
         var i;
         for (i = 0; i < table_data.length; ++i) {
             var e = table_data[i];
+
             var t = e.compile_time - e.compile_time_base
             if (t < 0) t = 0;
             e.ctime_raw = Math.round(t * 1000);
-            e.impact = computeImpact(e);
+            e.compile_time = Math.round(e.compile_time * 1000);
+            e.compile_time_base = Math.round(e.compile_time_base * 1000);
+            if (e.compile_time_base > e.compile_time)
+                e.compile_time = e.compile_time_base;
+
+            t = e.preprocessing_time - e.preprocessing_time_base
+            if (t < 0) t = 0;
+            e.ptime_raw = Math.round(t * 1000);
+            e.preprocessing_time = Math.round(e.preprocessing_time * 1000);
+            e.preprocessing_time_base = Math.round(e.preprocessing_time_base * 1000);
+            if (e.preprocessing_time_base > e.preprocessing_time)
+                e.preprocessing_time = e.preprocessing_time_base;
+
             e.object_size_full = e.object_size;
             e.object_size -= e.object_size_base;
+            if (e.object_size < 0)
+                e.object_size = 0;
             // e.argstr = "<pre>" + e.argstr + "</pre>";
+
+            e.impact = computeImpact(e);
+            e.impact_time = computeImpactTime(e);
+            e.impact_bin = computeImpactBin(e);
 
             e.ctime_max = e.ctime_raw
             e.binsize_max = e.object_size
@@ -188,6 +330,27 @@ into the {body} of the default.hbs template -->
             e.project_idx = proj_idx
         }
 
+        table.setData(data);
+    }
+
+    $(function () {
+
+        // TODO:
+        // - more entries / libs
+        // - two-level nodes for multi-version libs?
+        // - compress data.js a bit (by not repeating everything)
+        // - proper merge of multiple data files (add your own json!)
+        // - filter by c++ version (and update ranges)
+        // - links to projects in group header (poject_url)
+        // - debug / release / rel with deb info
+        // - list of includes per header (only those also in the table?)
+
+        // tooltip content (exact numbers):
+        // - on timing: compile, preproc, baselines
+        // - on lines: with stripping, without
+        // - on impact: how much of compile + binary
+
+
         var headerAlignRight = function (cell, formatterParams, onRendered) {
             cell.getElement().style.textAlign = 'right';
             return '' + cell.getValue()
@@ -223,26 +386,9 @@ into the {body} of the default.hbs template -->
             return rowData.file.toLowerCase().includes(headerValue.toLowerCase())
         }
 
-        // TODO:
-        // - tooltips for timing and lines of code
-        // - tooltips for headers explaining shit
-        // - more entries / libs
-        // - two-level nodes for multi-version libs?
-        // - compress data.js a bit (by not repeating everything)
-        // - proper merge of multiple data files (add your own json!)
-        // - specify test system
-        // - filter by c++ version (and update ranges)
-        // - links to projects in group header (poject_url)
-
-        // tooltip content (exact numbers):
-        // - on timing: compile, preproc, baselines
-        // - on lines: with stripping, without
-        // - on impact: how much of compile + binary
-
         // see http://tabulator.info/docs/4.6/quickstart
         var table = new Tabulator("#compile-table", {
             height: "1000",
-            data: data,
             layout: "fitColumns",
             groupBy: "project",
             dataTree: true,
@@ -264,9 +410,9 @@ into the {body} of the default.hbs template -->
                     sorter: make_str_sorter("version"),
                 },
                 {
-                    title: '<span header-tooltip="TODO">Impact <i class="fas fa-info-circle"></i></span>',
+                    title: '<span header-tooltip="impact-tooltip">Impact <i class="fas fa-info-circle"></i></span>',
                     field: "impact",
-                    width: 110,
+                    width: 120,
                     formatter: "progress",
                     formatterParams: {
                         min: 0,
@@ -275,9 +421,17 @@ into the {body} of the default.hbs template -->
                         legend: "",
                     },
                     sorter: make_sorter("impact"),
+                    cellMouseOver: function (e, cell) {
+                        $(cell.getElement()).tooltip({
+                            show: 0,
+                            hide: 0,
+                            content: buildImpactTooltip(cell.getData()),
+                            tooltipClass: "cell-tooltip",
+                        });
+                    },
                 },
                 {
-                    title: 'Timing <i class="fas fa-info-circle"></i>',
+                    title: '<span header-tooltip="timing-tooltip">Timing <i class="fas fa-info-circle"></i></span>',
                     field: "ctime",
                     width: 140,
                     titleFormatter: "html",
@@ -285,54 +439,90 @@ into the {body} of the default.hbs template -->
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
                     sorter: make_sorter("ctime_max"),
+                    cellMouseOver: function (e, cell) {
+                        $(cell.getElement()).tooltip({
+                            show: 0,
+                            hide: 0,
+                            content: buildTimeTooltip(cell.getData()),
+                            tooltipClass: "cell-tooltip",
+                        });
+                    },
                 },
                 {
-                    title: 'Lines <i class="fas fa-info-circle"></i>',
+                    title: '<span header-tooltip="lines-tooltip">Lines <i class="fas fa-info-circle"></i></span>',
                     field: "lines",
                     width: 160,
                     formatter: "html",
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
                     sorter: make_sorter("lines_max"),
+                    cellMouseOver: function (e, cell) {
+                        $(cell.getElement()).tooltip({
+                            show: 0,
+                            hide: 0,
+                            content: buildLineTooltip(cell.getData()),
+                            tooltipClass: "cell-tooltip",
+                        });
+                    },
                 },
                 {
-                    title: 'Binary <i class="fas fa-info-circle"></i>',
+                    title: '<span header-tooltip="binary-tooltip">Binary <i class="fas fa-info-circle"></i></span>',
                     field: "binsize",
                     width: 120,
                     formatter: "html",
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
                     sorter: make_sorter("binsize_max"),
+                    cellMouseOver: function (e, cell) {
+                        $(cell.getElement()).tooltip({
+                            show: 0,
+                            hide: 0,
+                            content: buildBinaryTooltip(cell.getData()),
+                            tooltipClass: "cell-tooltip",
+                        });
+                    },
                 },
             ],
+            groupHeader: function (value, count, data, group) {
+                return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files)</span>";
+            },
             groupStartOpen: function (value, count, data, group) {
                 return value == "C++ Standard Library";
             },
             rowClick: function (e, row) {
                 row.treeToggle();
+                $("div.ui-tooltip").remove();
+                $("div.ui-helper-hidden-accessible").remove();
             },
             groupToggleElement: "header",
+            placeholder: "Loading Compile Health Data ...",
+            resizableColumns: false,
+            tableBuilt: function () {
+                $(document).tooltip({
+                    items: "[header-tooltip]",
+                    content: function () {
+                        var e = $(this);
+                        if (e.is("[header-tooltip]"))
+                            return document.getElementById(e.attr("header-tooltip")).innerHTML;
+                    },
+                    show: 0,
+                    hide: 0,
+                });
+            },
+        });
+
+        $.getJSON("{{ site.baseurl_fix }}assets/compile-health/compile-health-data.json", function (data) {
+            createTable(table, data);
         });
 
         function adaptSize() {
             var wh = $(".site-wrapper").height();
             var y = $("#compile-table").offset().top
-            table.setHeight(wh - y);
+            table.setHeight(wh - y - 1);
         }
 
         $(window).resize(adaptSize);
         adaptSize();
-
-        $(document).tooltip({
-            items: "[header-tooltip]",
-            content: function() {
-                var e = $(this);
-                if (e.is("[header-tooltip]"))
-                    return e.attr("header-tooltip");
-            },
-            show: 100,
-            hide: 100,
-        })
     });
 </script>
 
