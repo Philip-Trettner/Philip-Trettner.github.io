@@ -349,11 +349,6 @@ into the {body} of the default.hbs template -->
         // - debug / release / rel with deb info
         // - list of includes per header (only those also in the table?)
 
-        // tooltip content (exact numbers):
-        // - on timing: compile, preproc, baselines
-        // - on lines: with stripping, without
-        // - on impact: how much of compile + binary
-
 
         var headerAlignRight = function (cell, formatterParams, onRendered) {
             cell.getElement().style.textAlign = 'right';
@@ -521,7 +516,10 @@ into the {body} of the default.hbs template -->
         function adaptSize() {
             var wh = $(window).height();
             var y = $("#compile-table").offset().top
-            table.setHeight(wh - y - 1);
+            var th = wh - y - 1;
+            if (th < 0.7 * wh)
+                th = Math.round(0.7 * wh);
+            table.setHeight(th);
         }
 
         $(window).resize(adaptSize);
