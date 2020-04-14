@@ -31,6 +31,10 @@ into the {body} of the default.hbs template -->
         color: #569cd6;
     }
 
+    .cpp-header-a {
+        color: #569cd6 !important;
+    }
+
     .tabulator-row.tabulator-group {
         min-height: 0 !important;
     }
@@ -77,7 +81,11 @@ into the {body} of the default.hbs template -->
     }
 
     div.ui-tooltip.cell-tooltip {
-        max-width: 500px !important;
+        max-width: 70% !important;
+    }
+
+    span.digitsep {
+        padding-left: 2px;
     }
 </style>
 
@@ -115,13 +123,57 @@ into the {body} of the default.hbs template -->
 
 <script>
 
+    function get_compile_time_full_ms(r) { return r[1]; }
+    function get_compile_time_base_ms(r) { return r[2]; }
+    function get_preproc_time_full_ms(r) { return r[3]; }
+    function get_preproc_time_base_ms(r) { return r[4]; }
+    function get_line_count(r) { return r[5]; }
+    function get_line_count_raw(r) { return r[6]; }
+    function get_object_size_full(r) { return r[7]; }
+    function get_object_size_base(r) { return r[8]; }
+    function get_text_size(r) { return r[9]; }
+    function get_data_size(r) { return r[10]; }
+    function get_bss_size(r) { return r[11]; }
+    function get_string_size(r) { return r[12]; }
+    function get_code_symbol_size(r) { return r[13]; }
+    function get_data_symbol_size(r) { return r[14]; }
+    function get_weak_symbol_size(r) { return r[15]; }
+    function get_symbol_name_size(r) { return r[16]; }
+    function get_string_count(r) { return r[17]; }
+    function get_undefined_symbol_count(r) { return r[18]; }
+    function get_data_symbol_count(r) { return r[19]; }
+    function get_code_symbol_count(r) { return r[20]; }
+    function get_weak_symbol_count(r) { return r[21]; }
+
+    function get_compile_time_ms(r) { return Math.max(0, get_compile_time_full_ms(r) - get_compile_time_base_ms(r)); }
+    function get_preproc_time_ms(r) { return Math.max(0, get_preproc_time_full_ms(r) - get_preproc_time_base_ms(r)); }
+    function get_object_size(r) { return Math.max(0, get_object_size_full(r) - get_object_size_base(r)); }
+
     function round1(v) {
+        if (Math.round(v) >= 100)
+            return "" + Math.round(v)
         if (Math.round(v * 10) / 10 == 0)
             return "0"
         return (Math.round(v * 10) / 10).toFixed(1)
     }
 
-    function rangeR(d, div, suffix, v0, v1) {
+    function formatNr(n) {
+        var parts = ("" + n).split('.')
+        var p = parts[0];
+        var l = p.length;
+        // var sep = "'";
+        var sep = "<span class='digitsep'></span>";
+        if (l > 6)
+            p = p.substring(0, l - 6) + sep + p.substring(l - 6, l - 3) + sep + p.substring(l - 3);
+        else if (l > 3)
+            p = p.substring(0, l - 3) + sep + p.substring(l - 3);
+        parts[0] = p;
+        return parts.join('.')
+    }
+
+    function rangeR(d, div, suffix, vs) {
+        var v0 = vs[0];
+        var v1 = vs[1];
         var prefix = "<span class='result-nr'>";
         if (suffix !== "")
             suffix = " <span class='unit-suffix'>" + suffix + "</span>";
@@ -138,50 +190,71 @@ into the {body} of the default.hbs template -->
             v1 = round1(v1)
         }
         if (only_first || v0 == v1)
-            return prefix + v0 + suffix;
-        return prefix + v0 + " .. " + v1 + "</span>" + suffix;
-    }
-    function rangeRA(d, div, suffix, vs) {
-        return rangeR(d, div, suffix, vs[0], vs[1]);
+            return prefix + formatNr(v0) + suffix;
+        return prefix + formatNr(v0) + " .. " + formatNr(v1) + "</span>" + suffix;
     }
 
-    function formatTime(v0, v1) {
-        return rangeR(0, 1, "ms", v0, v1);
+    function formatTime(vs) {
+        return rangeR(0, 1, "ms", vs);
     }
-    function formatLoC(v0, v1) {
-        return rangeR(1, 1000, "kLoC", v0, v1);
+    function formatLoC(vs) {
+        return rangeR(1, 1000, "kLoC", vs);
     }
-    function formatBin(v0, v1) {
-        return rangeR(1, 1024, "kB", v0, v1);
-    }
-
-    function computeImpactTime(e) {
-        var t = e.ctime_raw; // in ms
-        return Math.round(100 * (1 - 200 / (200 + t)));
-    }
-    function computeImpactBin(e) {
-        var b = e.object_size; // in B
-        return Math.round(100 * (1 - 100 * 1024 / (100 * 1024 + b)));
-    }
-    function computeImpact(e) {
-        return computeImpactBin(e) + computeImpactTime(e);
+    function formatBin(vs) {
+        return rangeR(1, 1024, "kB", vs);
     }
 
-    function getRange(e, name) {
-        var min = e[name];
-        var max = e[name];
+    function computeImpactTime(r) {
+        return Math.round(100 * (1 - 200 / (200 + get_compile_time_ms(r))));
+    }
+    function computeImpactBin(r) {
+        var b = get_object_size(r); // in B
+        return Math.round(100 * (1 - 1024 * 1024 / (1024 * 1024 + b)));
+    }
+    function computeImpact(r) {
+        return computeImpactBin(r) + computeImpactTime(r);
+    }
 
+    function lerpColor(a, b, t) {
+        var r = a[0] * (1 - t) + b[0] * t;
+        var g = a[1] * (1 - t) + b[1] * t;
+        var b = a[2] * (1 - t) + b[2] * t;
+        return "rgb(" + 255 * r + "," + 255 * g + "," + 255 * b + ")";
+    }
+
+    function getRange(e, attr) { // attr is fun on elements
         if (e._children) {
-            var i
-            for (i = 0; i < e._children.length; ++i) {
-                var v = e._children[i][name];
+            var min = attr(e._children[0]);
+            var max = min;
 
+            e._children.forEach(function (c) {
+                var v = attr(c);
                 if (v < min) min = v;
                 if (v > max) max = v;
-            }
+            });
+            return [min, max];
         }
+        else {
+            var v = attr(e);
+            return [v, v];
+        }
+    }
+    function getRangeRes(e, attr) { // attr is fun on results
+        if (e._children) {
+            var min = attr(e._children[0].result);
+            var max = min;
 
-        return [min, max];
+            e._children.forEach(function (c) {
+                var v = attr(c.result);
+                if (v < min) min = v;
+                if (v > max) max = v;
+            });
+            return [min, max];
+        }
+        else {
+            var v = attr(e.result);
+            return [v, v];
+        }
     }
 
     function makeTTable(vals) {
@@ -201,134 +274,127 @@ into the {body} of the default.hbs template -->
         return tt
     }
 
+    function buildFileTooltip(e) {
+        var v = e.variant;
+        var vals = [
+            ["Build Type", v.name],
+            ["C++ Version", "C++" + v.cpp],
+            ["Compiler", v.compiler_name],
+            [" .. Path", v.compiler_path],
+            [" .. Version", v.compiler_version],
+            [" .. Args", v.args],
+            // ["&gt; Compile", e.compile_cmd],
+            // ["&gt; Preprocess", e.preproc_cmd],
+        ];
+        var tt = "<table>";
+        var i;
+        // for (i = 0; i < vals.length; ++i) {
+        //     if (i > 0) tt += "<br />";
+        //     tt += vals[i][0] + ": " + vals[i][1];
+        // }
+        for (i = 0; i < vals.length; ++i) {
+            tt += "<tr>";
+            tt += "<td>" + vals[i][0].replace(" ", "&nbsp;") + "&nbsp;</td>";
+            tt += "<td><span class='code'>" + vals[i][1] + "</span></td>";
+            tt += "</tr>";
+        }
+        return tt;
+    }
+
     function buildTimeTooltip(e) {
         return makeTTable([
-            [rangeRA(0, 1, "", getRange(e, "ctime_raw")), "ms compile time (increase)"],
-            [rangeRA(0, 1, "", getRange(e, "compile_time")), "ms compile time (total)"],
-            [rangeRA(0, 1, "", getRange(e, "compile_time_base")), "ms compile time (baseline)"],
-            [rangeRA(0, 1, "", getRange(e, "ptime_raw")), "ms preprocessing time (increase)"],
-            [rangeRA(0, 1, "", getRange(e, "preprocessing_time")), "ms preprocessing time (total)"],
-            [rangeRA(0, 1, "", getRange(e, "preprocessing_time_base")), "ms preprocessing time (baseline)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_compile_time_ms)), "ms compile time (increase)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_compile_time_full_ms)), "ms compile time (total)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_compile_time_base_ms)), "ms compile time (baseline)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_preproc_time_ms)), "ms preprocessing time (increase)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_preproc_time_full_ms)), "ms preprocessing time (total)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_preproc_time_base_ms)), "ms preprocessing time (baseline)"],
         ]);
     }
 
     function buildImpactTooltip(e) {
         return makeTTable([
-            [rangeRA(0, 1, "", getRange(e, "impact")), "impact score"],
-            [rangeRA(0, 1, "", getRange(e, "impact_time")), "impact score (from timing)"],
-            [rangeRA(0, 1, "", getRange(e, "impact_bin")), "impact score (from binary)"],
+            [rangeR(0, 1, "", getRangeRes(e, computeImpact)), "impact score"],
+            [rangeR(0, 1, "", getRangeRes(e, computeImpactTime)), "impact score (from timing)"],
+            [rangeR(0, 1, "", getRangeRes(e, computeImpactBin)), "impact score (from binary)"],
         ]);
     }
 
     function buildLineTooltip(e) {
         return makeTTable([
-            [rangeRA(0, 1, "", getRange(e, "line_count")), "LoC stripped"],
-            [rangeRA(0, 1, "", getRange(e, "line_count_raw")), "LoC raw"],
+            [rangeR(0, 1, "", getRangeRes(e, get_line_count)), "LoC stripped"],
+            [rangeR(0, 1, "", getRangeRes(e, get_line_count_raw)), "LoC raw"],
         ]);
     }
 
     function buildBinaryTooltip(e) {
         return makeTTable([
-            [rangeRA(0, 1, "", getRange(e, "object_size")), "B obj size (increase)"],
-            [rangeRA(0, 1, "", getRange(e, "object_size_full")), "B obj size (total)"],
-            [rangeRA(0, 1, "", getRange(e, "undefined_symbol_count")), "external symbol(s)"],
-            [rangeRA(0, 1, "", getRange(e, "code_symbol_count")), "exported symbol(s)"],
-            [rangeRA(0, 1, "", getRange(e, "data_symbol_count")), "data symbol(s)"],
-            [rangeRA(0, 1, "", getRange(e, "undefined_symbol_size")), "B external symbol size"],
-            [rangeRA(0, 1, "", getRange(e, "code_symbol_size")), "B exported symbol size"],
-            [rangeRA(0, 1, "", getRange(e, "data_symbol_size")), "B data symbol size"],
+            [rangeR(0, 1, "", getRangeRes(e, get_object_size)), "B obj size (increase)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_object_size_full)), "B obj size (total)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_object_size_base)), "B obj size (base)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_text_size)), "B .text"],
+            [rangeR(0, 1, "", getRangeRes(e, get_data_size)), "B .data"],
+            [rangeR(0, 1, "", getRangeRes(e, get_bss_size)), "B .bss"],
+            [rangeR(0, 1, "", getRangeRes(e, get_string_size)), "B strings"],
+            [rangeR(0, 1, "", getRangeRes(e, get_code_symbol_size)), "B code symbol size"],
+            [rangeR(0, 1, "", getRangeRes(e, get_data_symbol_size)), "B data symbol size"],
+            [rangeR(0, 1, "", getRangeRes(e, get_weak_symbol_size)), "B weak symbol size"],
+            [rangeR(0, 1, "", getRangeRes(e, get_symbol_name_size)), "B symbol names"],
+            [rangeR(0, 1, "", getRangeRes(e, get_string_count)), "strings"],
+            [rangeR(0, 1, "", getRangeRes(e, get_undefined_symbol_count)), "undefined symbol(s)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_code_symbol_count)), "code symbol(s)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_data_symbol_count)), "data symbol(s)"],
+            [rangeR(0, 1, "", getRangeRes(e, get_weak_symbol_count)), "weak symbol(s)"],
         ]);
     }
 
     function createTable(table, table_data) {
+        var projects = table_data.projects
+        var variants = table_data.variants
+
         // post-process data a bit
         var data = [];
-        var i;
-        for (i = 0; i < table_data.length; ++i) {
-            var e = table_data[i];
+        var idx = 0;
 
-            var t = e.compile_time - e.compile_time_base
-            if (t < 0) t = 0;
-            e.ctime_raw = Math.round(t * 1000);
-            e.compile_time = Math.round(e.compile_time * 1000);
-            e.compile_time_base = Math.round(e.compile_time_base * 1000);
-            if (e.compile_time_base > e.compile_time)
-                e.compile_time = e.compile_time_base;
+        projects.forEach(function (p, pidx) {
+            p.files.forEach(function (f) {
+                function sharedSetup(e) {
+                    e.id = idx;
+                    e.cat = p.category;
+                    e.proj = p.name;
+                    e.project_idx = pidx;
+                    e.version = p.version;
+                    e.file = f;
+                    e.project = p;
+                }
 
-            t = e.preprocessing_time - e.preprocessing_time_base
-            if (t < 0) t = 0;
-            e.ptime_raw = Math.round(t * 1000);
-            e.preprocessing_time = Math.round(e.preprocessing_time * 1000);
-            e.preprocessing_time_base = Math.round(e.preprocessing_time_base * 1000);
-            if (e.preprocessing_time_base > e.preprocessing_time)
-                e.preprocessing_time = e.preprocessing_time_base;
+                fe = {};
+                sharedSetup(fe);
+                fe._children = [];
 
-            e.object_size_full = e.object_size;
-            e.object_size -= e.object_size_base;
-            if (e.object_size < 0)
-                e.object_size = 0;
-            // e.argstr = "<pre>" + e.argstr + "</pre>";
+                f.results.forEach(function (r) {
+                    e = {};
+                    sharedSetup(e);
+                    e.result = r;
+                    e.variant = variants[r[0]];
+                    e.impact = computeImpact(r);
+                    e.timing = get_compile_time_ms(r);
+                    e.lines = get_line_count(r);
+                    e.binsize = get_object_size(r);
 
-            e.impact = computeImpact(e);
-            e.impact_time = computeImpactTime(e);
-            e.impact_bin = computeImpactBin(e);
+                    fe._children.push(e);
+                    idx++;
+                })
 
-            e.ctime_max = e.ctime_raw
-            e.binsize_max = e.object_size
-            e.lines_max = e.line_count
+                fe.impact = getRange(fe, function (c) { return c.impact; })[1];
+                fe.timing = getRangeRes(fe, get_compile_time_ms)[1];
+                fe.lines = getRangeRes(fe, get_line_count)[1];
+                fe.binsize = getRangeRes(fe, get_object_size)[1];
 
-            if (i > 0 && data[data.length - 1].file == e.file) {
-                data[data.length - 1]._children.push(e);
-            }
-            else // new file
-            {
-                c = JSON.parse(JSON.stringify(e));
-                e._children = [c];
-                data.push(e);
-            }
-        }
-        var proj_idx = 0
-        for (i = 0; i < data.length; ++i) {
-            var e = data[i];
-            if (i > 0 && data[i - 1].project != e.project)
-                proj_idx += 1
-            e.argstr = "...";
-            e.compiler_name = "...";
-            var imsum = 0;
-            var ctmin = e.ctime_raw
-            var ctmax = e.ctime_raw
-            var locmin = e.line_count
-            var locmax = e.line_count
-            var binmin = e.object_size
-            var binmax = e.object_size
-            var j;
-            for (j = 0; j < e._children.length; ++j) {
-                var c = e._children[j];
-                imsum = c.impact > imsum ? c.impact : imsum;
-                if (c.ctime_raw < ctmin) ctmin = c.ctime_raw;
-                if (c.ctime_raw > ctmax) ctmax = c.ctime_raw;
-                if (c.line_count < locmin) locmin = c.line_count;
-                if (c.line_count > locmax) locmax = c.line_count;
-                if (c.object_size < binmin) binmin = c.object_size;
-                if (c.object_size > binmax) binmax = c.object_size;
-
-                c.name = " <span class='code'>" + c.compiler + " " + c.argstr + "</span>";
-                c.ctime = formatTime(c.ctime_raw);
-                c.lines = formatLoC(c.line_count);
-                c.binsize = formatBin(c.object_size);
-            }
-            e.name = "<span class='code cpp-header'>" + e.name
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;") + "</span>";
-            e.impact = imsum; // / e._children.length;
-            e.ctime = formatTime(ctmin, ctmax);
-            e.lines = formatLoC(locmin, locmax);
-            e.binsize = formatBin(binmin, binmax);
-            e.ctime_max = ctmax
-            e.lines_max = locmax
-            e.binsize_max = binmax
-            e.project_idx = proj_idx
-        }
+                data.push(fe);
+                idx++;
+            })
+        });
 
         table.setData(data);
     }
@@ -341,9 +407,8 @@ into the {body} of the default.hbs template -->
         // - compress data.js a bit (by not repeating everything)
         // - proper merge of multiple data files (add your own json!)
         // - filter by c++ version (and update ranges)
-        // - links to projects in group header (poject_url)
         // - debug / release / rel with deb info
-        // - list of includes per header (only those also in the table?)
+        // - option: do not count debug information in impact
 
 
         var headerAlignRight = function (cell, formatterParams, onRendered) {
@@ -361,15 +426,15 @@ into the {body} of the default.hbs template -->
                     return da[name] - db[name]
             };
         }
-        var make_str_sorter = function (name) {
+        var make_str_sorter = function (attr) {
             return function (a, b, aRow, bRow, column, dir, sorterParams) {
                 var da = aRow.getData();
                 var db = bRow.getData();
                 if (da.project_idx != db.project_idx)
                     return dir == "asc" ? da.project_idx - db.project_idx : db.project_idx - da.project_idx
                 else {
-                    var sa = da[name];
-                    var sb = db[name];
+                    var sa = attr(da);
+                    var sb = attr(db);
                     return sa < sb ? -1 : sa > sb ? 1 : 0;
                 }
             };
@@ -378,30 +443,52 @@ into the {body} of the default.hbs template -->
         var file_filter = function (headerValue, rowValue, rowData, filterParams) {
             if (headerValue === "")
                 return true;
-            return rowData.file.toLowerCase().includes(headerValue.toLowerCase())
+            return rowData.file.name.toLowerCase().includes(headerValue.toLowerCase())
         }
 
         // see http://tabulator.info/docs/4.6/quickstart
         var table = new Tabulator("#compile-table", {
             height: "1000",
             layout: "fitColumns",
-            groupBy: "project",
+            groupBy: ["cat", "proj"],
             dataTree: true,
             columns: [
                 {
                     title: "Header / Source",
-                    field: "name",
-                    formatter: "html",
-                    sorter: make_str_sorter("name"),
+                    field: "file",
+                    formatter: function (c) {
+                        var d = c.getData();
+                        var f = d.file;
+                        if (d._children) {
+                            var txt = "<span class='code cpp-header'>" + f.name
+                                .replace(/</g, "&lt;")
+                                .replace(/>/g, "&gt;") + "</span>";
+                            if (f.url)
+                                txt = "<a href='" + f.url + "' class='cpp-header-a' target='_blank'>" + txt + " <i class=\"fas fa-external-link-alt\"></i> </a>";
+                            return txt;
+                        }
+                        else
+                            return " <span class='code'>" + d.variant.compiler_path + " " + d.variant.args + "</span>";
+                    },
+                    sorter: make_str_sorter(function (d) { return d.file.name; }),
                     headerFilter: true,
                     headerFilterFunc: file_filter,
                     minWidth: 300,
+                    cellMouseOver: function (e, cell) {
+                        if (!cell.getData()._children)
+                            $(cell.getElement()).tooltip({
+                                show: 0,
+                                hide: 0,
+                                content: buildFileTooltip(cell.getData()),
+                                tooltipClass: "cell-tooltip",
+                            });
+                    },
                 },
                 {
                     title: "Version",
                     field: "version",
                     width: 100,
-                    sorter: make_str_sorter("version"),
+                    sorter: make_str_sorter(function (d) { return d.version; }),
                 },
                 {
                     title: '<span header-tooltip="impact-tooltip">Impact <i class="fas fa-info-circle"></i></span>',
@@ -411,7 +498,13 @@ into the {body} of the default.hbs template -->
                     formatterParams: {
                         min: 0,
                         max: 100,
-                        color: ["green", "orange", "red"],
+                        color: function (v) {
+                            v = (v < 0 ? 0 : v > 100 ? 100 : v) / 100;
+                            if (v < .5)
+                                return lerpColor([0, .7, 0], [1, .7, 0], v / .5);
+                            else
+                                return lerpColor([1, .7, 0], [1, 0, 0], (v - .5) / .5);
+                        },
                         legend: "",
                     },
                     sorter: make_sorter("impact"),
@@ -426,13 +519,15 @@ into the {body} of the default.hbs template -->
                 },
                 {
                     title: '<span header-tooltip="timing-tooltip">Timing <i class="fas fa-info-circle"></i></span>',
-                    field: "ctime",
+                    field: "timing",
                     width: 140,
                     titleFormatter: "html",
-                    formatter: "html",
+                    formatter: function (c) {
+                        return formatTime(getRangeRes(c.getData(), get_compile_time_ms));
+                    },
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
-                    sorter: make_sorter("ctime_max"),
+                    sorter: make_sorter("timing"),
                     cellMouseOver: function (e, cell) {
                         $(cell.getElement()).tooltip({
                             show: 0,
@@ -446,10 +541,12 @@ into the {body} of the default.hbs template -->
                     title: '<span header-tooltip="lines-tooltip">Lines <i class="fas fa-info-circle"></i></span>',
                     field: "lines",
                     width: 160,
-                    formatter: "html",
+                    formatter: function (c) {
+                        return formatLoC(getRangeRes(c.getData(), get_line_count));
+                    },
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
-                    sorter: make_sorter("lines_max"),
+                    sorter: make_sorter("lines"),
                     cellMouseOver: function (e, cell) {
                         $(cell.getElement()).tooltip({
                             show: 0,
@@ -462,11 +559,13 @@ into the {body} of the default.hbs template -->
                 {
                     title: '<span header-tooltip="binary-tooltip">Binary <i class="fas fa-info-circle"></i></span>',
                     field: "binsize",
-                    width: 120,
-                    formatter: "html",
+                    width: 140,
+                    formatter: function (c) {
+                        return formatBin(getRangeRes(c.getData(), get_object_size));
+                    },
                     hozAlign: "right",
                     titleFormatter: headerAlignRight,
-                    sorter: make_sorter("binsize_max"),
+                    sorter: make_sorter("binsize"),
                     cellMouseOver: function (e, cell) {
                         $(cell.getElement()).tooltip({
                             show: 0,
@@ -477,12 +576,23 @@ into the {body} of the default.hbs template -->
                     },
                 },
             ],
-            groupHeader: function (value, count, data, group) {
-                return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files)</span>";
-            },
-            groupStartOpen: function (value, count, data, group) {
-                return value == "C++ Standard Library";
-            },
+            groupHeader: [
+                function (value, count, data, group) {
+                    var l = group.getSubGroups().length;
+                    return value + "<span style='color:#777; margin-left:10px;'>(" + l + " librar" + (l == 1 ? "y" : "ies") + ")</span>";
+                },
+                function (value, count, data, group) {
+                    return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files, <a href='" + data[0].project.url + "' target='_blank'>" + data[0].project.url + " <i class=\"fas fa-external-link-alt\"></i> </a>)</span>";
+                }
+            ],
+            groupStartOpen: [
+                function (value, count, data, group) {
+                    return value == "Standard Library";
+                },
+                function (value, count, data, group) {
+                    return value == "C++ Standard Library";
+                }
+            ],
             rowClick: function (e, row) {
                 row.treeToggle();
                 $("div.ui-tooltip").remove();
