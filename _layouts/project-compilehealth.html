@@ -79,10 +79,6 @@ into the {body} of the default.hbs template -->
     div.ui-tooltip.cell-tooltip {
         max-width: 500px !important;
     }
-
-    html {
-        overflow-y: hidden !important;
-    }
 </style>
 
 <div class="content">
@@ -517,8 +513,8 @@ into the {body} of the default.hbs template -->
             var wh = $(window).height();
             var y = $("#compile-table").offset().top
             var th = wh - y - 1;
-            if (th < 0.7 * wh)
-                th = Math.round(0.7 * wh);
+            if (th < 0.8 * wh || wh < 1000)
+                th = Math.round(wh);
             table.setHeight(th);
         }
 
