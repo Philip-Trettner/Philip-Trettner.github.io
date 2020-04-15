@@ -27,24 +27,40 @@ into the {body} of the default.hbs template -->
     }
 
     span.cpp-header {
-        font-weight: bold;
-        color: #569cd6;
+        font-weight: 500;
+        color: #30414e;
     }
 
-    .cpp-header-a {
-        color: #569cd6 !important;
+    .tabulator-row:hover .cpp-header {
+        color: #0083fd;
     }
 
     .tabulator-row.tabulator-group {
         min-height: 0 !important;
+        background: none;
+        border-top: none !important;
+        border-bottom: 1px solid #999 !important;
     }
 
     .tabulator-row .tabulator-cell {
         padding: 5px !important;
     }
 
+    .tabulator-header {
+        border-bottom: none !important;
+    }
+
+    .tabulator-col {
+        border-bottom: 1px solid #999 !important;
+    }
+
     .tabulator-row {
         min-height: 20px !important;
+        border-right: none !important;
+    }
+
+    .tabulator-group a {
+        color: unset;
     }
 
     .tabulator-row.tabulator-row-odd {
@@ -81,17 +97,66 @@ into the {body} of the default.hbs template -->
     }
 
     div.ui-tooltip.cell-tooltip {
-        max-width: 70% !important;
+        max-width: 800px !important;
     }
 
     span.digitsep {
         padding-left: 2px;
     }
+
+    div.ui-tooltip {
+        z-index: 1111;
+    }
+
+    #compile-table {
+        width: 100vw;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .table-tree-expand,
+    .table-tree-collapse {
+        margin-right: 8px;
+    }
+
+    .table-tree-expand {
+        opacity: 0.2;
+    }
+
+    .tabulator-row:hover .table-tree-expand {
+        opacity: 1;
+    }
+
+    .impact-bar-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        margin: 8px;
+        border-radius: 3px;
+        background-color: #eee;
+        overflow: hidden;
+    }
+
+    .impact-bar {
+        height: 100%;
+        min-width: 6px;
+        position: relative;
+        border-radius: 2px;
+    }
 </style>
 
-<div class="content">
-    {{ content }}
-</div>
+<main id="site-main" class="site-main outer" role="main" style="flex-grow: unset;">
+    <div class="inner">
+
+        <div class="content">
+            {{ content }}
+        </div>
+
+
+    </div>
+</main>
 
 <div id="compile-table"></div>
 
@@ -102,7 +167,8 @@ into the {body} of the default.hbs template -->
 </div>
 
 <div id="timing-tooltip" style="display: none;">
-    The increase of compile time when adding <span class="code cpp-header">#include &lt;file&gt;</span> to an otherwise
+    The increase of compile time when adding <span class="code cpp-header">#include &lt;file&gt;</span> to an
+    otherwise
     empty file.
     Hover over individual entries for details.
 </div>
@@ -115,7 +181,8 @@ into the {body} of the default.hbs template -->
 </div>
 
 <div id="binary-tooltip" style="display: none;">
-    The increase in binary object size when adding <span class="code cpp-header">#include &lt;file&gt;</span> to an
+    The increase in binary object size when adding <span class="code cpp-header">#include &lt;file&gt;</span> to
+    an
     otherwise empty file.
     This includes all exported symbols, external symbols, data symbols, and debug information (if applicable).
     Hover over individual entries for details.
@@ -257,6 +324,39 @@ into the {body} of the default.hbs template -->
         }
     }
 
+    function makeImpactBar(c) {
+        var d = c.getData();
+        var v = d.impact;
+        v = (v < 0 ? 0 : v > 100 ? 100 : v) / 100;
+        var color;
+        if (v < .5)
+            color = lerpColor([0, .7, 0], [1, .7, 0], v / .5);
+        else
+            color = lerpColor([1, .7, 0], [1, 0, 0], (v - .5) / .5);
+
+        var minw = 0.1;
+
+        var left = v;
+        var width = 0;
+        if (d._children) {
+            var vmin = d.impacts[0];
+            vmin = (vmin < 0 ? 0 : vmin > 100 ? 100 : vmin) / 100;
+            left = vmin;
+            width = v - vmin;
+        }
+
+        if (width < minw) {
+            var ex = minw - width;
+            width = minw;
+            left -= ex / 2;
+        }
+        if (left < 0) left = 0;
+        if (left + width > 1) left = 1 - width;
+
+        // return "<div class='impact-bar' style='border-color:" + color + "; background-color:" + color + "; width:" + v * 100 + "%;'></div>";
+        return "<div class='impact-bar-container'><div class='impact-bar' style='border-color:" + color + "; background-color:" + color + "; left:" + left * 100 + "%; width:" + width * 100 + "%;'></div></div>";
+    }
+
     function makeTTable(vals) {
         var tt = "<table>";
         var i;
@@ -386,7 +486,8 @@ into the {body} of the default.hbs template -->
                     idx++;
                 })
 
-                fe.impact = getRange(fe, function (c) { return c.impact; })[1];
+                fe.impacts = getRange(fe, function (c) { return c.impact; });
+                fe.impact = fe.impacts[1];
                 fe.timing = getRangeRes(fe, get_compile_time_ms)[1];
                 fe.lines = getRangeRes(fe, get_line_count)[1];
                 fe.binsize = getRangeRes(fe, get_object_size)[1];
@@ -464,7 +565,7 @@ into the {body} of the default.hbs template -->
                                 .replace(/</g, "&lt;")
                                 .replace(/>/g, "&gt;") + "</span>";
                             if (f.url)
-                                txt = "<a href='" + f.url + "' class='cpp-header-a' target='_blank'>" + txt + " <i class=\"fas fa-external-link-alt\"></i> </a>";
+                                txt = "<a href='" + f.url + "' class='cpp-header-a' target='_blank'>" + txt + "</a>";
                             return txt;
                         }
                         else
@@ -481,6 +582,7 @@ into the {body} of the default.hbs template -->
                                 hide: 0,
                                 content: buildFileTooltip(cell.getData()),
                                 tooltipClass: "cell-tooltip",
+                                position: { my: "left bottom-12", at: "left+24 top", collision: "flipfit" },
                             });
                     },
                 },
@@ -494,19 +596,7 @@ into the {body} of the default.hbs template -->
                     title: '<span header-tooltip="impact-tooltip">Impact <i class="fas fa-info-circle"></i></span>',
                     field: "impact",
                     width: 120,
-                    formatter: "progress",
-                    formatterParams: {
-                        min: 0,
-                        max: 100,
-                        color: function (v) {
-                            v = (v < 0 ? 0 : v > 100 ? 100 : v) / 100;
-                            if (v < .5)
-                                return lerpColor([0, .7, 0], [1, .7, 0], v / .5);
-                            else
-                                return lerpColor([1, .7, 0], [1, 0, 0], (v - .5) / .5);
-                        },
-                        legend: "",
-                    },
+                    formatter: makeImpactBar,
                     sorter: make_sorter("impact"),
                     cellMouseOver: function (e, cell) {
                         $(cell.getElement()).tooltip({
@@ -514,6 +604,7 @@ into the {body} of the default.hbs template -->
                             hide: 0,
                             content: buildImpactTooltip(cell.getData()),
                             tooltipClass: "cell-tooltip",
+                            position: { my: "right bottom-12", at: "right top", collision: "flipfit" },
                         });
                     },
                 },
@@ -534,6 +625,7 @@ into the {body} of the default.hbs template -->
                             hide: 0,
                             content: buildTimeTooltip(cell.getData()),
                             tooltipClass: "cell-tooltip",
+                            position: { my: "right bottom-12", at: "right top", collision: "flipfit" },
                         });
                     },
                 },
@@ -553,6 +645,7 @@ into the {body} of the default.hbs template -->
                             hide: 0,
                             content: buildLineTooltip(cell.getData()),
                             tooltipClass: "cell-tooltip",
+                            position: { my: "right bottom-12", at: "right top", collision: "flipfit" },
                         });
                     },
                 },
@@ -572,6 +665,7 @@ into the {body} of the default.hbs template -->
                             hide: 0,
                             content: buildBinaryTooltip(cell.getData()),
                             tooltipClass: "cell-tooltip",
+                            position: { my: "right bottom-12", at: "right top", collision: "flipfit" },
                         });
                     },
                 },
@@ -582,7 +676,7 @@ into the {body} of the default.hbs template -->
                     return value + "<span style='color:#777; margin-left:10px;'>(" + l + " librar" + (l == 1 ? "y" : "ies") + ")</span>";
                 },
                 function (value, count, data, group) {
-                    return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files, <a href='" + data[0].project.url + "' target='_blank'>" + data[0].project.url + " <i class=\"fas fa-external-link-alt\"></i> </a>)</span>";
+                    return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files, <a href='" + data[0].project.url + "' target='_blank'>" + data[0].project.url + "</a>)</span>";
                 }
             ],
             groupStartOpen: [
@@ -613,6 +707,8 @@ into the {body} of the default.hbs template -->
                     hide: 0,
                 });
             },
+            dataTreeCollapseElement: "<i class='far fa-minus-square table-tree-collapse'></i>",
+            dataTreeExpandElement: "<i class='far fa-plus-square table-tree-expand'></i>",
         });
 
         $.getJSON("{{ site.baseurl_fix }}assets/compile-health/compile-health-data.json", function (data) {
