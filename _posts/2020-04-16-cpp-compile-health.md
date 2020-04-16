@@ -9,7 +9,7 @@ tags: [c++]
 class: post-template
 subclass: 'post'
 author: philip
-excerpt: 'Who f*cked up my build times??'
+excerpt: 'Ever wondered what is slowing down your C++ builds?'
 ---
 
 So anyways, why is my build so slow?
