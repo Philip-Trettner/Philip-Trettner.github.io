@@ -161,7 +161,7 @@ into the {body} of the default.hbs template -->
 <div id="compile-table"></div>
 
 <div id="impact-tooltip" style="display: none;">
-    This score estimates the impact of the file a build.
+    This score estimates the impact of the file on a build.
     It is a combination of the compile time and the resulting binary size
     (see blog post for details).
 </div>
@@ -272,14 +272,15 @@ into the {body} of the default.hbs template -->
     }
 
     function computeImpactTime(r) {
-        return Math.round(100 * (1 - 200 / (200 + get_compile_time_ms(r))));
+        var t = get_compile_time_ms(r);
+        return Math.round(100 * (1 - 200 / (200 + t)));
     }
     function computeImpactBin(r) {
         var b = get_object_size(r); // in B
-        return Math.round(100 * (1 - 1024 * 1024 / (1024 * 1024 + b)));
+        return Math.round(100 * (1 - 5 * 1024 * 1024 / (5 * 1024 * 1024 + b)));
     }
     function computeImpact(r) {
-        return computeImpactBin(r) + computeImpactTime(r);
+        return Math.min(100, computeImpactBin(r) + computeImpactTime(r));
     }
 
     function lerpColor(a, b, t) {
