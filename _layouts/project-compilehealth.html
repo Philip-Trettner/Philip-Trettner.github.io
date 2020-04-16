@@ -145,6 +145,10 @@ into the {body} of the default.hbs template -->
         position: relative;
         border-radius: 2px;
     }
+
+    .tabulator-group-toggle {
+        margin-left: 0 !important;
+    }
 </style>
 
 <main id="site-main" class="site-main outer" role="main" style="flex-grow: unset;">
@@ -677,7 +681,8 @@ into the {body} of the default.hbs template -->
                     return value + "<span style='color:#777; margin-left:10px;'>(" + l + " librar" + (l == 1 ? "y" : "ies") + ")</span>";
                 },
                 function (value, count, data, group) {
-                    return value + "<span style='color:#777; margin-left:10px;'>(" + count + " files, <a href='" + data[0].project.url + "' target='_blank'>" + data[0].project.url + "</a>)</span>";
+                    var f = count;
+                    return value + "<span style='color:#777; margin-left:10px;'>(" + f + " file" + (f == 1 ? "" : "s") + ", <a href='" + data[0].project.url + "' target='_blank'>" + data[0].project.url + "</a>)</span>";
                 }
             ],
             groupStartOpen: [
