@@ -220,6 +220,10 @@ into the {body} of the default.hbs template -->
         <div class="content">
             {{ content }}
 
+            <div style="margin-top: -14px;">
+                Upload custom data.json:
+                <input type="file" id="files" name="files[]" />
+            </div>
         </div>
 
     </div>
@@ -795,6 +799,33 @@ into the {body} of the default.hbs template -->
 
         $(window).resize(adaptSize);
         adaptSize();
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files; // FileList object
+
+            // files is a FileList of File objects. List some properties.
+            for (var i = 0, f; f = files[i]; i++) {
+                if (f.type != "application/json") {
+                    alert("Only JSON files supported");
+                    break;
+                }
+
+                table.clearData();
+                console.log("reading file " + f.name + " (type " + f.type + ", size " + f.size + ")");
+                var reader = new FileReader();
+                reader.onload = (function (theFile) {
+                    return function (e) {
+                        createTable(table, JSON.parse(e.target.result));
+                        console.log("recreated table");
+                        document.getElementById("files").value = "";
+                    };
+                })(f);
+                reader.readAsText(f);
+
+                break;
+            }
+        }
+        document.getElementById("files").addEventListener("change", handleFileSelect, false);
     });
 </script>
 
