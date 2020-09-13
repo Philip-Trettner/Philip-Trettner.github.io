@@ -232,7 +232,7 @@ This is for example useful to implement the [painter's algorithm](https://en.wik
 template <class F>
 void visit_in_direction(std::span<node const> nodes, tg::vec3 dir, F&& callback)
 {
-    auto recurse = [&](int node_idx, auto&& recurse) {
+    auto recurse = [&](int node_idx, auto&& recurse) -> void {
         if (node_idx < 0) // leaf node
         {
             callback(1 - node_idx);
@@ -262,6 +262,8 @@ visit_in_direction(nodes, view_dir, [&](int leaf_idx) {
     // render / process leaf_idx
 });
 ```
+
+Note: the trailing return type `-> void` seems to be mandatory here, otherwise my clang complains that it cannot deduce the return type.
 
 
 ## Conclusion
