@@ -24,7 +24,7 @@ If only it were that simple.
 
 Obviously, any performance-conscious programmer will compute Fibonacci numbers iteratively (or even [explicitly](https://en.wikipedia.org/wiki/Fibonacci_number#Closed-form_expression)), but this solution will serve as an example for an underappreciated tool: _recursive lambdas_.
 
-Lambdas are one of my favorite feature in any programming language and while I long for a [shorter syntax in C++](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r1.html), I still use them quite ubiquitously, especially for local functions.
+Lambdas are one of my favorite features in any programming language and while I long for a [shorter syntax in C++](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0573r1.html), I still use them quite ubiquitously, especially for local functions.
 They allow us to abstract behavior into a function while still accessing local variables (through captures) and without leaking new names into the surrounding namespace.
 While already plenty powerful, sometimes we might want to call a lambda recursively.
 
