@@ -201,7 +201,7 @@ To make this production-ready I would recommend the following:
 * only store a reference in `check_t` so that types must not even be movable (lifetime is fine as the reference doesn't outlive the assert expression)
 * add an optional general message to the assertion, supporting a format-like syntax (e.g. `ASSERTF(a == f(b), "xyz is not fulfilled and b is {}", b);`)
 * proper integration with logging, stack traces, custom assert handlers
-* optimize the performance so that assertions can also be enabled in `Release with Debug Info` mode with minimal runtime impact
+* optimize the performance so that assertions can also be enabled in `Release with Debug Info` mode (or even `Release`) with minimal runtime impact
 
 
 ## Summary
