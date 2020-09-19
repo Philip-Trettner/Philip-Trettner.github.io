@@ -157,7 +157,7 @@ struct assert_t
     check_t<A> operator<(A&& a)
     {
         // this code prevents copies
-        // if a is an lvalue ref, A is also an lvalue ref
+        // if a is an lvalue ref, A is also an lvalue ref, e.g. int&
         // if a is an rvalue ref, A is not a ref and a is moved into check_t
         return check_t<A>{std::forward<A>(a)};
     }
