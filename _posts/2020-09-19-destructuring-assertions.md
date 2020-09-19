@@ -234,3 +234,5 @@ ASSERT(a + b == c + d);
 (((assert_t{} < a + b) == c + d) ? void(0) :
                                    on_assert_failed(...));
 ```
+
+Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/ivql73/destructuring_assertions/).
