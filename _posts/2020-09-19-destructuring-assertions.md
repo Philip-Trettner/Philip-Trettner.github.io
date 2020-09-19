@@ -18,27 +18,36 @@ They embody a fail-fast mentality and serve as additional documentation, making 
 ```cpp
 #include <cassert>
 
-auto a = 1;
-auto b = 2;
-assert(a == b);
+float dot_product(std::span<float> lhs, std::span<float> rhs)
+{
+    assert(lhs.size() == rhs.size());
+    auto sum = 0.f;
+    for (size_t i = 0; i < lhs.size(); ++i)
+        sum += lhs[i] * rhs[i];
+    return sum;
+}
 ```
 
 In this post we will remedy a shortcoming of the traditional C assertion:
 
 ```
-Assertion `a == b' failed.
+Assertion `lhs.size() == rhs.size()' failed.
 ```
 
-Okay, our assertion failed, our code (or assumption) is buggy. But what are `a` and `b`?
+Okay, our assertion failed, our code (or assumption) is buggy. 
 
-Test frameworks like [Catch2](https://github.com/catchorg/Catch2) or [doctest](https://github.com/onqtam/doctest) are (seemingly magically) able to display the values of `a` and `b` when their assertions / checking macros fail:
+But what are the sizes of `lhs` and `rhs`?
+
+Test frameworks like [Catch2](https://github.com/catchorg/Catch2) or [doctest](https://github.com/onqtam/doctest) are (seemingly magically) able to display the values of `lhs` and `rhs` when their assertions / checking macros fail:
 
 ```
 Example.cpp:7: FAILED:
-  REQUIRE( a == b )
+  REQUIRE( lhs.size() == rhs.size() )
 with expansion:
-  1 == 2
+  100 == 300
 ```
+
+Let's assume we have an assertion of the form `ASSERT(a == b)`.
 
 The rest of this post explains how to display the values of `a` and `b`.
 
@@ -47,7 +56,15 @@ The rest of this post explains how to display the values of `a` and `b`.
 
 ## Typical Assertion Anatomy
 
-Before we start destructuring the assertion expression, let's take a look at how assertions are typically implemented:
+Before we start destructuring the assertion expression, let's take a look at how assertions are typically implemented.
+A super naive version would be:
+
+```cpp
+#define ASSERT(expr) if (!expr) \
+                         on_assert_failed(#expr, __FILE__, __LINE__, __FUNCTION__);
+```
+
+However, looking at a [standard library implementation](https://github.com/lattera/glibc/blob/master/assert/assert.h#L89) we find something similar to
 
 ```cpp
 void on_assert_failed(char const* expr, char const* file, int line, char const* fun);
@@ -58,13 +75,6 @@ void on_assert_failed(char const* expr, char const* file, int line, char const* 
 ```
 
 There is already something noteworthy going on here.
-A super naive version would be:
-
-```cpp
-#define ASSERT(expr) if (!expr) \
-                         on_assert_failed(#expr, __FILE__, __LINE__, __FUNCTION__);
-```
-
 Most of this is basic macro hygiene but it cannot hurt to repeat it.
 
 `!expr` is dangerous as `ASSERT(a == b)` would expand to `if (!a == b)`.
@@ -73,7 +83,7 @@ A better solution is `!static_cast<bool>(expr)` which preserves most warnings.
 
 Secondly, in function-like macros, it is common courtesy to make them behave as if they were normal functions.
 On the one hand, this means requiring a semicolon at the end.
-On the other hand, it means that one should implement `ASSERT` as an expression, not a statement.
+On the other hand, it means that one should implement `ASSERT` as an [expression](https://en.cppreference.com/w/cpp/language/expressions), not a [statement](https://en.cppreference.com/w/cpp/language/statements).
 
 ```cpp
 // should error due to missing ;
@@ -113,7 +123,7 @@ As already spoilered, we will exploit [operator precedence](https://en.cpprefere
 We are going to surround `a == b` with `assert_t{} OP a == b` where `assert_t` is a helper type and `OP` is our "snatching" operator.
 Comparisons are associated left-to-right, so `OP` must have the same or higher precedence than the comparisons `==, !=, <, <=, >, >=`.
 However, when its precedence is too high, it will interface with more complex assertions such as `ASSERT(a + b == c)` where we want to "snatch" `a + b` and not only `a`.
-Looking at the precedence table, this leaves us with the shift operators or `<, <=, >, >=` (ignoring the C++20 `<=>` spaceship).
+Looking at the [precedence table](https://en.cppreference.com/w/cpp/language/operator_precedence), this leaves us with the shift operators or `<, <=, >, >=` (ignoring the C++20 `<=>` spaceship).
 
 For no particular reason I'll continue with `<`:
 
@@ -146,7 +156,9 @@ struct assert_t
     template <class A>
     check_t<A> operator<(A&& a)
     {
-        // prevent copies of a
+        // this code prevents copies
+        // if a is an lvalue ref, A is also an lvalue ref
+        // if a is an rvalue ref, A is not a ref and a is moved into check_t
         return check_t<A>{std::forward<A>(a)};
     }
 };
@@ -179,15 +191,17 @@ assertion '1 + 1 == 3' failed
 To make this production-ready I would recommend the following:
 
 * add all desired comparison operators to `check_t`
+* add a `operator bool()` to `check_t` to support `ASSERT(some_bool)`
 * add `static_assert`s to `check_t` that check if the comparison between `A` and `B` actually works (nicer compile errors)
 * move `assert_t` and `check_t` in "`detail::`" or "`impl::`" scopes
 * write a user-extensible version of `std::to_string` so that user types can register their own formatter
+* allow types without `to_string` (e.g. print `???`)
 * try to remove the dependence on `<string>` as this is a rather expensive header (for example, the custom `to_string` might return a `char const*` that was allocated via `new` and is `delete[]`d by `on_assert_failed`; this is not performance critical)
-* add a `operator bool()` to `check_t` to support `ASSERT(some_bool)`
 * add `operator&&` and `operator||` to `check_t` and `assert_t` that cause `static_assert` failures (we cannot destructure chained expressions so this should be forbidden. there is an escape hatch via `ASSERT((a || b))` without destructuring)
 * only store a reference in `check_t` so that types must not even be movable (lifetime is fine as the reference doesn't outlive the assert expression)
 * add an optional general message to the assertion, supporting a format-like syntax (e.g. `ASSERTF(a == f(b), "xyz is not fulfilled and b is {}", b);`)
 * proper integration with logging, stack traces, custom assert handlers
+* optimize the performance so that assertions can also be enabled in `Release with Debug Info` mode with minimal runtime impact
 
 
 ## Summary
