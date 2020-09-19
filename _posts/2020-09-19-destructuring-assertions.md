@@ -186,6 +186,7 @@ To make this production-ready I would recommend the following:
 * add a `operator bool()` to `check_t` to support `ASSERT(some_bool)`
 * add `operator&&` and `operator||` to `check_t` and `assert_t` that cause `static_assert` failures (we cannot destructure chained expressions so this should be forbidden. there is an escape hatch via `ASSERT((a || b))` without destructuring)
 * only store a reference in `check_t` so that types must not even be movable (lifetime is fine as the reference doesn't outlive the assert expression)
+* add an optional general message to the assertion, supporting a format-like syntax (e.g. `ASSERTF(a == f(b), "xyz is not fulfilled and b is {}", b);`)
 
 
 ## Summary
