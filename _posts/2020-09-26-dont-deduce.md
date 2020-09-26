@@ -229,7 +229,7 @@ add_range(vecA, vecB);
 
 The (seemingly useless) `dont_deduce<T>` (or [std::type_identity](https://en.cppreference.com/w/cpp/types/type_identity)) can be used to selectively disable [template argument deduction](https://en.cppreference.com/w/cpp/language/template_argument_deduction).
 
-This is a valuable tool in reducing API friction:
+This is a valuable tool for reducing API friction:
 
 ```cpp
 template <class T>
