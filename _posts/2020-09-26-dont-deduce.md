@@ -49,7 +49,8 @@ using dont_deduce = typename dont_deduce_t<T>::type;
 
 This clearly communicates our intent: we want to disable type deduction for a certain parameter.
 
-> In C++20, the same functionality is provided in `<type_traits>` under [std::type_identity](https://en.cppreference.com/w/cpp/types/type_identity). (though I find this name significantly less clear in a function declaration)
+> In C++20, the same functionality is provided in `<type_traits>` under [std::type_identity](https://en.cppreference.com/w/cpp/types/type_identity) (though I find this name significantly less clear in a function declaration). 
+> Also note that I prefer a different convention than the C++ standard: the implementation type ends with `_t` while the typedef is "clean".
 
 Okay okay, not so fast.
 What problem are we trying to solve here?
@@ -114,7 +115,16 @@ template <class T, class B, std::enable_if_t<std::is_convertible_v<B, T>, int> =
 vec3<T> operator+(vec3<T> const& a, B b);
 ```
 
-However, in my opinion the superior solution is to "disable deduction" for `b` by turning its type into a so called [non-deduced context](https://en.cppreference.com/w/cpp/language/template_argument_deduction#Non-deduced_contexts):
+However, in my opinion, the superior solution is to "disable deduction" for `b` by turning its type into a so called [non-deduced context](https://en.cppreference.com/w/cpp/language/template_argument_deduction#Non-deduced_contexts).
+`dont_deduce<T>` is not a simple typedef of `T`.
+Rather, it is "piped through" the templated class `dont_deduce_t<T>` (via a typedef `::type` that just maps `T` to itself).
+Because template specialization can arbitrarily mess with templated classes, deduction does _not_ work "through" `dont_deduce_t<T>::type`.
+In particular, just because the compiler sees that `dont_deduce_t<T>::type` should be `float`, it cannot deduce that `T` must be `float` as well.
+Just imagine if someone writes a template specialization where `dont_deduce_t<some_user_type>::type` is `float`.
+
+> Shower thought: How about user-defined per-function deduction guides in C++3x?
+
+Anyways, by using `dont_deduce<T>` we take away the compiler's ability to reason about `T`, allowing us to write a rather clean API:
 
 ```cpp
 template <class T>
@@ -144,9 +154,11 @@ If the second argument is not convertible (e.g. `v + "foo"`), we get [a nice err
       |                                     ~~~~~~~~~~~~~~~^
 ```
 
-This also highlights a subtle difference between the twe SFINAE and the `dont_deduce<T>` solution:
+This also highlights a subtle difference between the SFINAE and the `dont_deduce<T>` solution:
 With SFINAE, the function overload does not really exist (though modern compilers still give [reasonable, though often confusing error messages](https://godbolt.org/z/h3K4TE)).
 With `dont_deduce<T>`, the function exists and it's like calling a function with the wrong type of parameters.
+
+Also, SFINAE tends to blow up compile times while there should be no measurable negative impact of using `dont_deduce<T>`.
 
 
 ## Other Useful Examples
