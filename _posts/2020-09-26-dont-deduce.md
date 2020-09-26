@@ -5,7 +5,7 @@ cover:  assets/images/murder.jpg
 navigation: True
 title: "dont_deduce&lt;T&gt;"
 date: 2020-09-26 02:00:00
-tags: [c++]
+tags: [c++, api design]
 class: post-template
 subclass: 'post'
 author: philip
