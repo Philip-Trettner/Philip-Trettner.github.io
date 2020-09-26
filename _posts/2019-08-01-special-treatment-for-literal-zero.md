@@ -207,3 +207,5 @@ A possible middle ground could be
 [[deprecated("use is_below_zero(X) instead")]]
 bool operator<(X, literal_zero);
 ```
+
+(_Title image from [unsplash](https://unsplash.com/photos/rfpSOlH1JlQ)_)

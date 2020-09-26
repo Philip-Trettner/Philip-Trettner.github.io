@@ -34,3 +34,5 @@ All in all I hope this makes for some interesting topics for some of you.
 In that spirit:
 
 Let's start this journey!
+
+(_Title image from [unsplash](https://unsplash.com/photos/68ZlATaVYIo)_)

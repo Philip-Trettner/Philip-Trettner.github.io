@@ -236,3 +236,5 @@ ASSERT(a + b == c + d);
 ```
 
 Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/ivql73/destructuring_assertions/).
+
+(_Title image from [pixabay](https://pixabay.com/photos/blueprint-ruler-architecture-964630/)_)

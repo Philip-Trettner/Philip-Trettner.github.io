@@ -190,3 +190,5 @@ Also, a lot of this depends on how willing the compiler is to inline.
 We've only measured the throughput.
 The results are only valid for "calling the same function many times with different arguments", not for "calling many different functions".
 But that is a topic for another post.
+
+(_Title image from [unsplash](https://unsplash.com/photos/sb7RUrRMaC4)_)

@@ -310,3 +310,5 @@ auto i = fib(7);
 ```
 
 Note that `auto` does not work here because the compiler needs to know the type of `fib` before calling it.
+
+(_Title image from [pixabay](https://pixabay.com/illustrations/menger-fractal-design-cube-702863/)_)

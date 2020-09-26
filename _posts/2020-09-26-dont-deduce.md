@@ -73,14 +73,14 @@ vec3<T> operator+(vec3<T> const& a, T b)
 
 That looks like a reasonable definition of `operator+`, doesn't it?
 
-Turns out, [it doesn't provide the smooth API that we'd like to have](https://godbolt.org/z/Yx4jr1).
+Turns out, it doesn't provide the smooth API that we'd like to have.
 
 ```cpp
 vec3<float> v = ...;
 v = v + 3; // that'd be a cool API, right?
 ```
 
-GCC 10.2 politely refuses this code but not without a proper explanation:
+[GCC 10.2 politely refuses this code](https://godbolt.org/z/Yx4jr1) but not without a proper explanation:
 
 ```cpp
 <source>:16:11: error: no match for 'operator+' (operand types are 'vec3<float>' and 'int')
@@ -230,3 +230,4 @@ vec3<float> v;
 v + 3; // works with (B) but not with (A)
 ```
 
+(_Title image from [pixabay](https://pixabay.com/photos/murder-the-scene-investigation-5294706/)_)

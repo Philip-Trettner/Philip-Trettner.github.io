@@ -135,3 +135,5 @@ This especially implies that everything that is representable will be computed e
 
 `float`s have 23 bit mantissa, meaning integer computations with `float` will be exact if input and output are at most a few millions.
 `double` has enough precision that any `int32_t` computation will be exact.
+
+(_Title image from [unsplash](https://unsplash.com/photos/Nl-GCtizDHg)_)
