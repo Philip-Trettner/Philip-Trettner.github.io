@@ -242,4 +242,6 @@ vec3<float> v;
 v + 3; // works with (B) but not with (A)
 ```
 
+Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j0pgxh/controlling_template_argument_deduction_via_dont/).
+
 (_Title image from [pixabay](https://pixabay.com/photos/murder-the-scene-investigation-5294706/)_)
