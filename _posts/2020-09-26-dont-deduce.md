@@ -66,40 +66,40 @@ struct vec3
 };
 
 template <class T>
-vec3<T> operator+(vec3<T> const& a, T b)
+vec3<T> operator*(vec3<T> const& a, T b)
 {
-    return {a.x + b, a.y + b, a.z + b};
+    return {a.x * b, a.y * b, a.z * b};
 }
 ```
 
-That looks like a reasonable definition of `operator+`, doesn't it?
+That looks like a reasonable definition of `operator*`, doesn't it?
 
 Turns out, it doesn't provide the smooth API that we'd like to have.
 
 ```cpp
 vec3<float> v = ...;
-v = v + 3; // that'd be a cool API, right?
+v = v * 3; // that'd be a cool API, right?
 ```
 
-[GCC 10.2 politely refuses this code](https://godbolt.org/z/Yx4jr1) but not without a proper explanation:
+[GCC 10.2 politely refuses this code](https://godbolt.org/z/78z8M1) but not without a proper explanation:
 
 ```cpp
-<source>:16:11: error: no match for 'operator+' (operand types are 'vec3<float>' and 'int')
-   16 |     v = v + 3;
+<source>:16:11: error: no match for 'operator*' (operand types are 'vec3<float>' and 'int')
+   16 |     v = v * 3;
       |         ~ ^ ~
       |         |   |
       |         |   int
       |         vec3<float>
-<source>:8:9: note: candidate: 'template<class T> vec3<T> operator+(const vec3<T>&, T)'
-    8 | vec3<T> operator+(vec3<T> const& a, T b)
+<source>:8:9: note: candidate: 'template<class T> vec3<T> operator*(const vec3<T>&, T)'
+    8 | vec3<T> operator*(vec3<T> const& a, T b)
       |         ^~~~~~~~
 <source>:8:9: note:   template argument deduction/substitution failed:
 <source>:16:13: note:   deduced conflicting types for parameter 'T' ('float' and 'int')
-   16 |     v = v + 3;
+   16 |     v = v * 3;
       |             ^
 ```
 
-What happens is that `operator+` is called with a `vec3<float>` and `int`.
+What happens is that `operator*` is called with a `vec3<float>` and `int`.
 The compiler then tries to _deduce_ a `T` such that the signature `(vec3<T> const&, T)` is satisfied.
 For the first argument it figures `T = float` might be a good match while for the second, `T = int` is the natural choice.
 Thus it responds: `deduced conflicting types for parameter 'T' ('float' and 'int')`.
@@ -112,7 +112,7 @@ We _could_ make this work with additional template arguments and [SFINAE](https:
 
 ```cpp
 template <class T, class B, std::enable_if_t<std::is_convertible_v<B, T>, int> = 0>
-vec3<T> operator+(vec3<T> const& a, B b);
+vec3<T> operator*(vec3<T> const& a, B b);
 ```
 
 However, in my opinion, the superior solution is to "disable deduction" for `b` by turning its type into a so called [non-deduced context](https://en.cppreference.com/w/cpp/language/template_argument_deduction#Non-deduced_contexts).
@@ -128,34 +128,34 @@ Anyways, by using `dont_deduce<T>` we take away the compiler's ability to reason
 
 ```cpp
 template <class T>
-vec3<T> operator+(vec3<T> const& a, dont_deduce<T> b);
+vec3<T> operator*(vec3<T> const& a, dont_deduce<T> b);
 ```
 
-And voilà, now `v + 3` [just works](https://godbolt.org/z/jsnbMr).
+And voilà, now `v * 3` [just works](https://godbolt.org/z/a5E6Yv).
 
-As a non-deduced context, the second argument of `operator+` is not used for template type deduction.
+As a non-deduced context, the second argument of `operator*` is not used for template type deduction.
 Thus, only `vec3<T> const&` is matched against the `vec3<float>`, resulting in an unambiguous `T = float`.
-After the typedef is resolved, we have `operator+(vec3<float> const&, float)` which is called with `vec3<float>` and `int`, which is perfectly fine as there obviously is a conversion from `int` to `float`.
+After the typedef is resolved, we have `operator*(vec3<float> const&, float)` which is called with `vec3<float>` and `int`, which is perfectly fine as there obviously is a conversion from `int` to `float`.
 
-If the second argument is not convertible (e.g. `v + "foo"`), we get [a nice error message](https://godbolt.org/z/onh7es):
+If the second argument is not convertible (e.g. `v * "foo"`), we get [a nice error message](https://godbolt.org/z/zzord3):
 
 ```cpp
-<source>:25:11: error: no match for 'operator+' (operand types are 'vec3<float>' and 'const char [4]')
-   25 |     v = v + "foo";
+<source>:25:11: error: no match for 'operator*' (operand types are 'vec3<float>' and 'const char [4]')
+   25 |     v = v * "foo";
       |         ~ ^ ~~~~~
       |         |   |
       |         |   const char [4]
       |         vec3<float>
-<source>:17:9: note: candidate: 'vec3<T> operator+(const vec3<T>&, dont_deduce<T>) [with T = float; dont_deduce<T> = float]'
-   17 | vec3<T> operator+(vec3<T> const& a, dont_deduce<T> b)
+<source>:17:9: note: candidate: 'vec3<T> operator*(const vec3<T>&, dont_deduce<T>) [with T = float; dont_deduce<T> = float]'
+   17 | vec3<T> operator*(vec3<T> const& a, dont_deduce<T> b)
       |         ^~~~~~~~
 <source>:17:52: note:   no known conversion for argument 2 from 'const char [4]' to 'dont_deduce<float>' {aka 'float'}
-   17 | vec3<T> operator+(vec3<T> const& a, dont_deduce<T> b)
+   17 | vec3<T> operator*(vec3<T> const& a, dont_deduce<T> b)
       |                                     ~~~~~~~~~~~~~~~^
 ```
 
 This also highlights a subtle difference between the SFINAE and the `dont_deduce<T>` solution:
-With SFINAE, the function overload does not really exist (though modern compilers still give [reasonable, though often confusing error messages](https://godbolt.org/z/h3K4TE)).
+With SFINAE, the function overload does not really exist (though modern compilers still give [reasonable, though often confusing error messages](https://godbolt.org/z/PhnMqT)).
 With `dont_deduce<T>`, the function exists and it's like calling a function with the wrong type of parameters.
 
 Also, SFINAE tends to blow up compile times while there should be no measurable negative impact of using `dont_deduce<T>`.
@@ -206,6 +206,8 @@ property_handle<std::string_view> p;
 auto s = get_property_or(p, "<no value>");
 ```
 
+Note that in this example the handle should dictate the type, not the default value.
+
 ### Containers and Spans
 
 ```cpp
@@ -233,13 +235,13 @@ This is a valuable tool for reducing API friction:
 
 ```cpp
 template <class T>
-vec3<T> operator+(vec3<T> const& a, T b); // (A)
+vec3<T> operator*(vec3<T> const& a, T b); // (A)
 
 template <class T>
-vec3<T> operator+(vec3<T> const& a, dont_deduce<T> b); // (B)
+vec3<T> operator*(vec3<T> const& a, dont_deduce<T> b); // (B)
 
 vec3<float> v;
-v + 3; // works with (B) but not with (A)
+v * 3; // works with (B) but not with (A)
 ```
 
 Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j0pgxh/controlling_template_argument_deduction_via_dont/).
