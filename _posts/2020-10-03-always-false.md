@@ -113,7 +113,7 @@ The definition of `always_false` is variadic so that multiple types can be provi
 
 I have two main use cases for `always_false<T>`.
 
-The first is the already mention class template specialization when the "base case" is not supported.
+The first is the already mentioned class template specialization when the "base case" is not supported.
 A solution I sometimes see is to only declare but not define the template:
 
 ```cpp
