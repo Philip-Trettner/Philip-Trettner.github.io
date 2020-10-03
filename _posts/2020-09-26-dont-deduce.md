@@ -3,7 +3,7 @@ layout: post
 current: post
 cover:  assets/images/murder.jpg
 navigation: True
-title: "dont_deduce&lt;T&gt;"
+title: "dont_deduce<T>"
 date: 2020-09-26 02:00:00
 tags: [c++, api design]
 class: post-template

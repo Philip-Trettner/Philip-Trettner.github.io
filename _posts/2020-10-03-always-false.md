@@ -3,7 +3,7 @@ layout: post
 current: post
 cover:  assets/images/wrong-way.jpg
 navigation: True
-title: "always_false&lt;T&gt;"
+title: "always_false<T>"
 date: 2020-10-03 04:00:00
 tags: [c++]
 class: post-template

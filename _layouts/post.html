@@ -38,7 +38,7 @@ into the {body} of the default.hbs template -->
                         {% endfor %}
                     {% endif %}
                 </section>
-                <h1 class="post-full-title">{{ page.title }}</h1>
+                <h1 class="post-full-title">{{ page.title | escape }}</h1>
             </header>
 
             {% if page.cover %}
@@ -116,7 +116,7 @@ into the {body} of the default.hbs template -->
                                     {% if post.title != page.title %}
                                         {% assign count = count | plus: 1 %}
                                         {% if count <= 3 %}
-                                            <li><a href="{{ site.baseurl_fix }}{{ post.url | remove_first: '/' }}">{{ post.title }}</a></li>
+                                            <li><a href="{{ site.baseurl_fix }}{{ post.url | remove_first: '/' }}">{{ post.title | escape }}</a></li>
                                         {% endif %}
                                     {% endif %}
                                   {% endif %}
