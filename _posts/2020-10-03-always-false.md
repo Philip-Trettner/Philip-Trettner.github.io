@@ -71,6 +71,9 @@ struct foo
     static_assert(sizeof(T) < 0);
     static_assert(sizeof(T) + 1 == 0);
     static_assert(false && sizeof(T));
+
+    // does not clutter error message for incomplete types:
+    static_assert(false && sizeof(T*));
 };
 ```
 
