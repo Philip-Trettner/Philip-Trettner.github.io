@@ -422,4 +422,4 @@ However, we can restore it via a templated conversion operator that delegates to
 In the process, we can also define a `has_from_string<T>` to help with diagnostics or SFINAE.
 
 
-(_Title image from [pixabay](https://pixabay.com/photos/sign-street-road-road-signs-2454791/)_)
+(_Title image from [pixabay](https://pixabay.com/photos/india-merchant-dealer-ox-goods-4780853/)_)
