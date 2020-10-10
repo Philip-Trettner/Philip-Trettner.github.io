@@ -632,7 +632,8 @@ The first (most recent) post in the list is styled to be bigger than the others 
 }
 
 @media (max-width: 1170px) {
-    .post-full-content {
+    .post-full-content, 
+    .post-full-comments {
         padding: 5vw 7vw 0;
     }
 }
@@ -982,6 +983,7 @@ Usage (In Ghost editor):
         margin-bottom: 4vw;
         height: 350px;
     }
+    .post-full-comments,
     .post-full-content {
         padding: 0;
     }
@@ -1236,6 +1238,7 @@ Usage (In Ghost editor):
 .post-full-comments {
     margin: 0 auto;
     max-width: 840px;
+    padding: 70px 100px 0;
 }
 
 
