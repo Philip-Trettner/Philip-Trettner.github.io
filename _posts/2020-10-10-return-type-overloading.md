@@ -163,6 +163,30 @@ void bar(bool);
 Similarly, this means that `std::cout << from_string("2") << std::endl;` does not work.
 (The error message for that is slightly ghastly as we have at least 16 candidate overloads.)
 
+Finally, only one user-defined conversion can be applied implicitly, so the following [doesn't work](https://godbolt.org/z/Gxq1rb):
+
+```cpp
+struct bar 
+{
+    bar(int i);
+};
+
+void test_bar(bar b);
+
+test_bar(from_string("3"));
+```
+
+The compiler only tries to directly convert `to_string_t` to `bar`:
+
+```cpp
+<source>:22:5: error: no matching function for call to 'test_bar'
+    test_bar(from_string("3"));
+    ^~~~~~~~
+<source>:18:6: note: candidate function not viable: no known conversion from 'to_string_t' to 'bar' for 1st argument
+void test_bar(bar b);
+     ^
+```
+
 All these cases can be resolved by explicitly adding a cast to the desired type, e.g. `int(to_string("10"))`.
 
 
@@ -191,6 +215,9 @@ Then this means "overload for return types `int` and `bool`" and other libraries
 There is a way to fix this and add extensibility.
 This will add some implementation complexity and for more specialized use cases, extensibility might not actually be desired.
 However, I would argue that `from_string` should be designed with extensibility in mind.
+
+> Note: the rest of this section focuses more on metaprogramming and API design than the return-type overloading.
+> You can skip to the next section to see the final version.
 
 The solution here is that conversion functions can be templated.
 We will use that to delegate the conversion to a template specialization, which is then properly extensible:
