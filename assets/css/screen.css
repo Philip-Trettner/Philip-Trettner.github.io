@@ -631,6 +631,10 @@ The first (most recent) post in the list is styled to be bigger than the others 
     background: #fff;
 }
 
+.post-full-comments {
+    padding: 70px 100px 0;
+}
+
 @media (max-width: 1170px) {
     .post-full-content, 
     .post-full-comments {
@@ -1238,7 +1242,6 @@ Usage (In Ghost editor):
 .post-full-comments {
     margin: 0 auto;
     max-width: 840px;
-    padding: 70px 100px 0;
 }
 
 
