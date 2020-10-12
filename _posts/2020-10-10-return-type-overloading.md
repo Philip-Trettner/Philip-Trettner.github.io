@@ -423,4 +423,67 @@ In the process, we can also define a `has_from_string<T>` to help with diagnosti
 
 Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j94jd8/overloading_by_return_type_in_c/) and [hacker news](https://news.ycombinator.com/item?id=24752527).
 
+
+### Update 2020-10-12:
+
+Ok full disclosure: this post was written in a semi-serious mindset but turned to be something that can be misunderstood as "how to use return-type overloading in production".
+I think [this comic](https://gunshowcomic.com/513) summarizes my original feelings.
+Still, I think there are some valid use cases for this technique.
+
+One example I like is an adaptation from redditor [Skoparov](https://www.reddit.com/r/cpp/comments/j94jd8/overloading_by_return_type_in_c/g8hmaye):
+
+```cpp
+namespace limits
+{
+constexpr struct
+{
+    template <class T>
+    constexpr operator T() const { return std::numeric_limits<T>::max(); }
+} max;
+}
+```
+
+Now, `int i = limits::max;` works like a return-type deduced constant.
+
+While the example `from_string` might be questionable, my personal library contains a `uniform(rng)` function that auto-converts to (and uniformly samples from) types with known, finite domains.
+Makes it very convenient to write `color3 c = uniform(rng)`, `angle a = uniform(rng)`, or `if (uniform(rng)) { ... }`.
+
+Finally, yes, storing the returned `to_string_t` can easily turn into a lifetime problem.
+However, this can easily be diagnosed with very high accuracy if one allows the conversion only for rvalue references:
+
+```cpp
+struct to_string_t
+{
+    std::string_view s;
+
+    operator int() const&&;  // int  from_string(std::string_view s);
+    operator bool() const&&; // bool from_string(std::string_view s);
+};
+
+to_string_t from_string(std::string_view s) { return to_string_t{s}; }
+
+// user code:
+int i = from_string("7"); // still works
+
+auto j = from_string(std::string("10"));
+int k = j; // in the original version, this uses a dangling reference
+           // now it gives a compile error
+```
+
+In the full solution, one could even do:
+
+```cpp
+
+struct to_string_t
+{
+    std::string_view s;
+
+    template <class T>
+    operator T() const&& { return to_string_impl<T>::from_string(s); }
+    template <class T>
+    operator T() const& { static_assert(always_false<T>, "must not be stored (for lifetime reasons)"); }
+};
+```
+
+
 (_Title image from [pixabay](https://pixabay.com/photos/india-merchant-dealer-ox-goods-4780853/)_)
