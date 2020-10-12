@@ -485,5 +485,4 @@ struct to_string_t
 };
 ```
 
-
 (_Title image from [pixabay](https://pixabay.com/photos/india-merchant-dealer-ox-goods-4780853/)_)
