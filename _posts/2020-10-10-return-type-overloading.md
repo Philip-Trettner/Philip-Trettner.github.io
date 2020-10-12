@@ -473,7 +473,6 @@ int k = j; // in the original version, this uses a dangling reference
 In the full solution, one could even do:
 
 ```cpp
-
 struct to_string_t
 {
     std::string_view s;
