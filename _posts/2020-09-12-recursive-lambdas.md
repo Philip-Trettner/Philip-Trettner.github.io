@@ -294,7 +294,7 @@ The recipe is simple:
 If you want to call a lambda recursively, just add an `auto&&` parameter taking the function again and call that.
 This produces basically optimal assembly and can be used in combination with capturing.
 
-Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/irupel/recursive_lambdas_in_c/).
+Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/irupel/recursive_lambdas_in_c/).
 
 ### Update 2020-09-13:
 

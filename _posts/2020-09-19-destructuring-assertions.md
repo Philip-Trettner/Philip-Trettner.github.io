@@ -235,6 +235,6 @@ ASSERT(a + b == c + d);
                                    on_assert_failed(...));
 ```
 
-Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/ivql73/destructuring_assertions/).
+Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/ivql73/destructuring_assertions/).
 
 (_Title image from [pixabay](https://pixabay.com/photos/blueprint-ruler-architecture-964630/)_)

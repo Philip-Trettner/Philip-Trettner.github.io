@@ -173,6 +173,6 @@ template <class... T>
 constexpr bool always_false = false;
 ```
 
-Discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j4gsj4/always_falset/).
+Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j4gsj4/always_falset/).
 
 (_Title image from [pixabay](https://pixabay.com/photos/sign-street-road-road-signs-2454791/)_)

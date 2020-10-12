@@ -421,5 +421,6 @@ By default, this solution does not have the extensibility of normal by-argument-
 However, we can restore it via a templated conversion operator that delegates to a templated class that can be specialized.
 In the process, we can also define a `has_from_string<T>` to help with diagnostics or SFINAE.
 
+Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/j94jd8/overloading_by_return_type_in_c/) and [hacker news](https://news.ycombinator.com/item?id=24752527).
 
 (_Title image from [pixabay](https://pixabay.com/photos/india-merchant-dealer-ox-goods-4780853/)_)
