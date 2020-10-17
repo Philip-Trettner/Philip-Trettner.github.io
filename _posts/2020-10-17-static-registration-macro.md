@@ -665,6 +665,8 @@ static auto my_test = tf::test("my test", [] {
 Similar to a [std::lock_guard](https://en.cppreference.com/w/cpp/thread/lock_guard), we need to assign a variable name, even if it is never actually used.
 Apart from that, this method has surprisingly little "noise" (for a non-macro approach).
 
+In C++20 we can even add back line and file information using [std::source_location](https://en.cppreference.com/w/cpp/utility/source_location).
+
 
 ## Final Version
 
