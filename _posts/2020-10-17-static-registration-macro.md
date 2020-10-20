@@ -262,8 +262,9 @@ Names with internal linkage are "local" to a translation unit and are neither ex
 There are two main mechanisms to switch to internal linkage:
 `static` functions or variables, and [unnamed namespaces](https://en.cppreference.com/w/cpp/language/namespace#Unnamed_namespaces), also known as anonymous namespaces.
 
-Note that `foo::foo()` is defined inside `struct foo` and thus already has internal linkage.
-However, I still prefer to place `struct foo` inside an unnamed namespace to clearly communicate that this is a TU-local helper.
+Note that `foo::foo()` is defined inside `struct foo` and thus is implicitly `inline`.
+However, it still has external linkage and will conflict with `foo`s defined in other TUs.
+Worse, because they are `inline`, you will not get a `multiple definition` error but the linker will arbitrarily pick one definition, almost always leading to weird errors.
 
 Thus, we arrive at the first, safely usable version:
 
