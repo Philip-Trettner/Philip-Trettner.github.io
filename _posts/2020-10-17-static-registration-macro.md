@@ -833,4 +833,6 @@ However, sometimes a central place where all functions are registered is more ap
 
 As always: know your problem and choose the best tool.
 
+Additional discussion and comments on [reddit](https://www.reddit.com/r/cpp/comments/jdgxcl/static_registration_macros_eg_test_casefoo/).
+
 (_Title image from [pixabay](https://pixabay.com/photos/old-cash-register-finance-money-1645813/)_)
