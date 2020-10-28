@@ -1,4 +1,4 @@
-<meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}" />
+<meta name="description" content="{% if page.description %}{{ page.description | normalize_whitespace }}{% else %}{{ site.description | normalize_whitespace }}{% endif %}" />
     <link rel="shortcut icon" href="{{ site.url }}{{ site.baseurl_fix }}{{ site.favicon }}" type="image/png" />
     <link rel="canonical" href="{{ site.url }}{% if site.baseurl_fix %}{{ site.baseurl_fix }}{% endif %}{{ page.url | remove_first: '/' }}" />
     <meta name="referrer" content="no-referrer-when-downgrade" />
@@ -23,7 +23,7 @@
     <meta name="twitter:url" content="{{ site.url }}{{ site.baseurl_fix }}" />
     <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl_fix }}{% if page.cover %}{{ page.cover }}{% else %}{{ site.cover }}{% endif %}" />
     <meta name="twitter:label1" content="Written by" />
-    <meta name="twitter:data1" content="{{ site.title }}" />{% if page.tags.size > 0 %}
+    <meta name="twitter:data1" content="Philip Trettner" />{% if page.tags.size > 0 %}
     <meta name="twitter:label2" content="Filed under" />
     <meta name="twitter:data2" content="{{ page.tags | first | capitalizeall }}" />{% endif %}
     <meta name="twitter:site" content="@{{ site.twitter }}" />
@@ -38,8 +38,8 @@
     "@context": "https://schema.org",
     "@type": "Website",
     "publisher": {
-        "@type": "Organization",
-        "name": "{{ site.title }}",
+        "@type": "Person",
+        "name": "Philip Trettner",
         "logo": "{{ site.url }}{{ site.baseurl_fix }}{{ site.logo }}"
     },
     "url": "{{ site.url }}{% if site.baseurl_fix %}{{ site.baseurl_fix }}{% endif %}{{ page.url | remove_first: '/' }}",

@@ -10,8 +10,11 @@ baseurl: /
 baseurl_fix: /
 
 # Website info
-title: artificial::mind
-description: Thoughts about Graphics, C++, Optimization, and more
+title: artificial::mind blog
+description: >
+    Articles about Graphics, C++, Optimization, Game Development, Programming Languages, and more.
+    Personal blog of Philip Tretter writing under the alias of Artificial Mind.
+subtitle: Thoughts about Graphics, C++, Optimization, and more
 cover: assets/images/blog-cover.jpg
 logo: assets/images/title-logo-alpha.png
 logo_dark: assets/images/favicon.png
