@@ -194,12 +194,6 @@ constexpr_for_tuple([](auto const& v) {
     std::make_tuple(1, 'c', true));
 ```
 
-## Further Reading
-
-* There is official proposal [P1306](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1306r1.pdf) for `for...`
-* [Thoughts on P1306](https://quuxplusone.github.io/blog/2019/02/28/expansion-statements/) by Arthur O'Dwyer
-* [Boost.Hana](https://www.boost.org/doc/libs/1_65_1/libs/hana/doc/html/index.html), especially [hana::for_each](https://www.boost.org/doc/libs/1_63_0/libs/hana/doc/html/group__group-Foldable.html#ga2af382f7e644ce3707710bbad313e9c2)
-
 
 ## Summary
 
@@ -218,5 +212,11 @@ In the end, we have three `constexpr for` approximations for different use cases
 
 Of course, you should typically prefer a normal `for` loop as per-iteration instantiation will not be gentle on the compile time.
 However, sometimes this is not possible because we either need the loop index as non-type template parameter or the variable type might change in each iteration.
+
+## Further Reading
+
+* There is official proposal [P1306](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1306r1.pdf) for `for...`
+* [Thoughts on P1306](https://quuxplusone.github.io/blog/2019/02/28/expansion-statements/) by Arthur O'Dwyer
+* [Boost.Hana](https://www.boost.org/doc/libs/1_65_1/libs/hana/doc/html/index.html), especially [hana::for_each](https://www.boost.org/doc/libs/1_63_0/libs/hana/doc/html/group__group-Foldable.html#ga2af382f7e644ce3707710bbad313e9c2)
 
 (_Title image from [pixabay](https://pixabay.com/photos/rollercoaster-looping-amusement-801833/)_)
