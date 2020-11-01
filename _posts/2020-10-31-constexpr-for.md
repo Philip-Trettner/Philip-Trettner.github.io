@@ -219,5 +219,6 @@ However, sometimes this is not possible because we either need the loop index as
 * There is official proposal [P1306](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1306r1.pdf) for `for...`
 * [Thoughts on P1306](https://quuxplusone.github.io/blog/2019/02/28/expansion-statements/) by Arthur O'Dwyer
 * [Boost.Hana](https://www.boost.org/doc/libs/1_65_1/libs/hana/doc/html/index.html), especially [hana::for_each](https://www.boost.org/doc/libs/1_63_0/libs/hana/doc/html/group__group-Foldable.html#ga2af382f7e644ce3707710bbad313e9c2)
+* [compile-time iteration with C++20 lambdas](https://vittorioromeo.info/index/blog/cpp20_lambdas_compiletime_for.html) by Vittorio Romeo
 
 (_Title image from [pixabay](https://pixabay.com/photos/rollercoaster-looping-amusement-801833/)_)
