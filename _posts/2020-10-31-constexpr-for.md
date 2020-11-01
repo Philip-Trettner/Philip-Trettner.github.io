@@ -164,6 +164,7 @@ void print_all(Args const&... args)
 
 Again, [the compiler can unroll and properly call each function](https://godbolt.org/z/53ebaP).
 
+> For more fold expression magic, I can wholeheartedly recommend [nifty fold expression tricks](https://foonathan.net/2020/05/fold-tricks/) by Jonathan Müller.
 
 ## Tuples and Tuple-Likes
 
@@ -192,6 +193,12 @@ constexpr_for_tuple([](auto const& v) {
     },
     std::make_tuple(1, 'c', true));
 ```
+
+## Further Reading
+
+* There is official proposal [P1306](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1306r1.pdf) for `for...`
+* [Thoughts on P1306](https://quuxplusone.github.io/blog/2019/02/28/expansion-statements/) by Arthur O'Dwyer
+* [Boost.Hana](https://www.boost.org/doc/libs/1_65_1/libs/hana/doc/html/index.html), especially [hana::for_each](https://www.boost.org/doc/libs/1_63_0/libs/hana/doc/html/group__group-Foldable.html#ga2af382f7e644ce3707710bbad313e9c2)
 
 
 ## Summary
