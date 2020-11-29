@@ -66,7 +66,7 @@ The first allocation is needed for the temporary `indices` vector.
 Slightly more non-obvious is the need for copies of `keys` and `values` before applying the permutation.
 A simple `keys[i] = keys[indices[i]];` would yield the wrong result (imagine what happens if `keys[indices[i]]` was already overwritten in a previous loop iteration).
 
-There are ways to avoid the key/value copies but there are quite a bit more involved.
+There are ways to avoid the key/value copies but they are quite a bit more involved.
 Permutations can be decomposed into disjoint cycles and then applied via a cycling swap for each cycle.
 Alternatively, permutations can also be decomposed into a series of transpositions, i.e. a sequence of `std::swap(keys[i], keys[j])`.
 
