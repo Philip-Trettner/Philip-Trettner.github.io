@@ -234,7 +234,7 @@ A badness of roughly 0 means that the current bucket distribution is close to op
 
 # "Fixing" my Issue
 
-Turns out, `myhash_float` has a badness of 550 on my data. Outch.
+Turns out, `myhash_float` has a badness of 550 on my data. Ouch.
 
 Of course, this does not mean that the performance gap to the optimal case is a factor of 550.
 Similar to [Amdahl's law](https://en.wikipedia.org/wiki/Amdahl%27s_law), this factor is only realized if the program literally does nothing else (and we ignore caching and other effects that reality pesters us with).
@@ -252,7 +252,7 @@ So, even if `myhash_float` has 3% innate collision rate, a cheap scrambling at t
 
 In my opinion, hash maps are among the most interesting data structures.
 The only container that is more useful is the array, but apart from abstractions like `vector` and `span`, arrays are quite compact in design space.
-Hash maps have myriads of useful variants and tradeoffs.
+Hash maps have a plethora of useful variants and tradeoffs.
 
 This post is about the practical quality of hash functions and how to measure them.
 With the bucket API of `std::unordered_map`, we can actually quantify how far from optimal our concrete map is.
