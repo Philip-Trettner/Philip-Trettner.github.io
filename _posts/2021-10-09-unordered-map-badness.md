@@ -248,6 +248,16 @@ Not optimal, but so much better that my program sped up by a factor of 50+.
 Interestingly enough, using the result of `myhash_float` as a seed for a single round of [xorshift](https://en.wikipedia.org/wiki/Xorshift) has a badness of 0.04.
 So, even if `myhash_float` has 3% innate collision rate, a cheap scrambling at the end is all it takes to get near optimal hash distribution.
 
+Xorshift consists of a state update and an output scramble.
+As only the second step is needed, you can funnily enough fix most suboptimal hashes by simply calling:
+
+```cpp
+size_t fix_my_hash(size_t h)
+{
+    return h * 0xd989bcacc137dcd5ull >> 32u;
+}
+```
+
 # Conclusion
 
 In my opinion, hash maps are among the most interesting data structures.
