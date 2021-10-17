@@ -9,7 +9,7 @@ tags: [c++, optimization]
 class: post-template
 subclass: 'post'
 author: philip
-excerpt: "Even without inling, the compiler does not always has to assume the worst case."
+excerpt: "Even without inlining, the compiler does not always has to assume the worst case."
 ---
 
 [Inlining](https://en.wikipedia.org/wiki/Inline_expansion) is one of the most important compiler optimizations.
