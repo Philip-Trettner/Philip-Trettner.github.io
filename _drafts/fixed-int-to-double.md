@@ -97,7 +97,7 @@ vaddsd xmm0, xmm0, xmm1
 ```
 and don't get me started on the gcc version, which is littered with branches.
 
-# u64 -> double vs i64 -> double
+# `u64 -> double` vs `i64 -> double`
 
 It turns out that converting `uint64_t` to `double` is actually more expensive than I thought.
 Especially because `int64_t` to `double` is extremely cheap ([godbolt](https://godbolt.org/z/YMn5TjcPf)):
