@@ -59,7 +59,7 @@ test(int const&):
 
 Unsurprising, `foo` is called twice.
 For all we know, it has important side effects that have to be executed twice.
-Maybe a bit more subtle: `n` hat to be reloaded from memory, because the first call to `foo` might have changed the memory.
+Maybe a bit more subtle: `n` had to be reloaded from memory, because the first call to `foo` might have changed the memory.
 (For example, `n` might be a reference to a global `int` that `foo` happens to increment.)
 
 This is really the worst case for the compiler.

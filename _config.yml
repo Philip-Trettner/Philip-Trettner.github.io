@@ -33,7 +33,7 @@ facebook: philip.trettner # replace by your username
 github: Philip-Trettner
 
 # Disqus
-disqus: True
+disqus: False
 disqus_shortname: artificial-mind # replace with your disqus username
 
 # Google Analytics
