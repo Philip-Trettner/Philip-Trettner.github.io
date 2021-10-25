@@ -25,9 +25,9 @@ T work(/* ... */)
 This is a classical "return-by-value" and (wrongfully) associated with copies and overhead.
 
 In many cases, this will actually `move` the result instead of copying it.
-For modern C++, one could even argue that this will move in _most_ cases.
+For modern C++, one could even argue that this will move in _most_ cases (or, as we will see, completely _elide_ the copy and directly construct in the result memory).
 
-This post discusses several common patterns and if they will move or copy.
+This post discusses several common patterns and if they are moved, copies, or elided.
 
 > Side note: _technically_ a move is a type of copy.
 > For example, `T x = <expr>` performs a [copy initialization](https://en.cppreference.com/w/cpp/language/copy_initialization), which might select the move constructor during overload resolution.
