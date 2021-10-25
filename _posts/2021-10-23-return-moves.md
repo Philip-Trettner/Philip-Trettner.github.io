@@ -402,8 +402,9 @@ T work(T const& obj)
 
 T work(T&& obj)
 {
-    return obj; // COPY! "inside" work, obj is lvalue reference
+    return obj; // COPY! "inside" work, obj is an lvalue
                 // NOTE: careful with lifetimes here
+                // NOTE: is a move in C++20
 }
 
 T work(T const obj)
