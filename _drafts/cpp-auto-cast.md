@@ -112,38 +112,26 @@ private:
 We made the constructor `explicit` and added an [rvalue reference qualifier](https://en.cppreference.com/w/cpp/language/member_functions#ref-qualified_member_functions) to the conversion operator, so it can only be used on rvalues of `auto_cast`, which we have in `f = auto_cast(p)`, but not in `auto v = auto_cast(p); f = v;`.
 For good measure, we also made `value` private.
 
-# Better? Error Messages
+# References
+
+Another use case for explicit `static_cast`s is up-casting references in a hierarchy:
 
 ```cpp
-int i = auto_cast(p);
-// clang 13:
-// error: static_cast from 'void *' to 'int' is not allowed
-// note: in instantiation of function template specialization 
-//       'auto_cast<void *>::operator int<int>' requested here
+struct base { };
+
+struct derived : base { };
+
+derived d;
+base& b = d;
+derived& d2 = static_cast<derived&>(b);
 ```
 
-This is arguably a good error message already, but it happens inside the template instantiation and is also not SFINAE-friendly.
-We can guard the conversion operator itself by SFINAE and remove it when `From` is not convertible to `To`.
-In C++20, this can be neatly done using [the `std::convertible_to` concept](https://en.cppreference.com/w/cpp/concepts/convertible_to):
+Our current `auto_cast` is ill-suited for this, as storing 
 
-```cpp
-template <std::convertible_to<From> To>
-operator To() &&
-{ 
-    return static_cast<To>(value); 
-}
-```
+// TODO: continue
 
-With which we now get:
 
-```cpp
-int i = auto_cast(p);
-// clang 13:
-// error: no viable conversion from 'auto_cast<void *>' to 'int'
-// note: candidate template ignored: constraints not satisfied [with To = int]
-// note: because 'std::convertible_to<int, void *>' evaluated to false
-```
-
+# Limitations
 
 # TODO
 
