@@ -3,6 +3,17 @@
 This is the source of my personal blog (https://artificial-mind.net).
 
 
+## Dev Quickstart
+
+
+
+## Dev Quickstart First Time
+
+* `sudo apt install ruby-dev`
+* `sudo gem install bundler jekyll`
+* `bundle install`
+
+
 ## Copyright & License
 
 NOTE: the license only applies to the Jekyll template code, not to the blogging content.
