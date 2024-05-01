@@ -5,12 +5,18 @@ This is the source of my personal blog (https://artificial-mind.net).
 
 ## Dev Quickstart
 
+* `bash --login` (does not work on fish for reasons)
+* `bundle exec jekyll serve --livereload --drafts`
 
 
 ## Dev Quickstart First Time
 
-* `sudo apt install ruby-dev`
-* `sudo gem install bundler jekyll`
+* install rvm via https://rvm.io/ (gpg key + curl | bash)
+* `bash --login` (does not work on fish for reasons)
+* `rvm install 3.3.1` (non-system ruby)
+* `rvm use 3.3.1`
+* `gem update`
+* `gem install bundler jekyll`
 * `bundle install`
 
 
