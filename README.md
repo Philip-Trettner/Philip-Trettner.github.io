@@ -25,7 +25,7 @@ This is the source of my personal blog (https://artificial-mind.net).
 NOTE: the license only applies to the Jekyll template code, not to the blogging content.
 
 
-The template code has the same licence as the one provided by Ghost's team. See Casper's theme [license](GHOST.txt).
+The template code has the same license as the one provided by Ghost's team. See Casper's theme [license](GHOST.txt).
 
 Copyright (C) 2015-2018 - Released under the MIT License.
 

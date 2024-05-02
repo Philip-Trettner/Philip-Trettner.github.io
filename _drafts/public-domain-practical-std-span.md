@@ -14,11 +14,11 @@ excerpt: "grab your free std::span here!"
 
 For me, the most underrated data type in C++ is the `std::span<T>`.
 A non-owning view on a contiguous region of memory.
-`std::string_view` is to `std::string` what `std::span<T>` is to `std::vector<T>`.
+`std::span<T>` is to `std::vector<T>` what `std::string_view` is to `std::string`.
 It's the reason `std::vector<T> const&` became an obscurity in my code.
 
 Still, it's a C++20 addition and I have to work on many C++17 projects.
-Bringing in new dependencies and coordinating licenses is a hassle.
+Bringing in new dependencies and coordinating licenses is always a hassle.
 So here it is, for everyone to use: a hassle-free, public domain, forward-compatible subset of `std::span<T>`:
 
 ```cpp
@@ -45,7 +45,7 @@ public:
     template <class Container, class = std::void_t<
         decltype(static_cast<T*>(std::declval<Container>().data())), 
         decltype(size_t(std::declval<Container>().size()))>>
-    constexpr span(Container&& c) : _data(c.data()), _size(c.size()) { }
+    constexpr span(Container&& c) noexcept : _data(c.data()), _size(c.size()) { }
 
     constexpr operator span<T const>() const noexcept { return {_data, _size}; }
 
@@ -92,17 +92,21 @@ Looking at [cppreference for `std::span<T>`](https://en.cppreference.com/w/cpp/c
 This is a deliberate choice to keep the code compact.
 Should you need a more fully featured version, try to upgrade to C++20, extend the snippet, or choose any of the dozen of available span/array-view/array-ref helpers out there.
 
-My version is a 80-20 version of what I've needed so far and offers the following trade-offs:
-* forward-compatible (once C++20 becomes available in your project, it can be replaced by `std::span<T>` without changing the API)
+My version is a [80-20 version](https://en.wikipedia.org/wiki/Pareto_principle) of what I've needed so far and offers the following trade-offs:
+* mostly forward-compatible (once C++20 becomes available in your project, it can be replaced by `std::span<T>` without changing the API. Only _mostly_, because some ctor checks are less strict.)
+* fully `constexpr`
 * no second template argument for fixed size spans
 * no typedefs for `xyz_type`, `xyz_iterator`, etc.
 * only simple begin/end, no c/r versions
 * only a subset of constructors with less strict concept checking
 * no deduction guides
+* the includes [add almost no compile time](/projects/compile-health)
 
 The result is a quite readable ~50 LOC practical implementation.
 
 TODO: link to godbolt
-TODO: test impl
+TODO: test impl (static asserts!)
+TODO: usage examples
+TODO: is the const conversion needed?
 
 (_Title image from DALL-E via "a free array view, free as-in beer"_)
