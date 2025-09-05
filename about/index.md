@@ -10,6 +10,8 @@ subclass: 'post page'
 
 My name is Philip Trettner and I'm co-founder of [Shaped Code](https://shapedcode.com/) where I'm available as freelancer and contractor.
 
+We also develop [Solidean](https://solidean.com/), a middleware for high-performance, exact, and robust geometry processing, currently with main focus on mesh booleans.
+
 Recently, I finished my time as a PhD student in computer graphics at the [Visual Computing Institute](https://graphics.rwth-aachen.de/) of the [RWTH Aachen University](https://www.rwth-aachen.de), Germany.
 
 This is my personal blog where I write about programming, C++, computer science, optimization, technology, and more.

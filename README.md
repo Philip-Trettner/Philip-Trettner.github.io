@@ -20,6 +20,19 @@ This is the source of my personal blog (https://artificial-mind.net).
 * `bundle install`
 
 
+## Dev Quickstart Windows
+
+* (elevated) `choco install ruby`
+* `ridk exec pacman -Syy` (updated package sources)
+* `ridk install` (keep the [1,3] for msys)
+* `gem install bundler jekyll`
+
+Now in repo root:
+
+* `bundle config set path 'vendor/bundle'`
+* `bundle install`
+
+
 ## Copyright & License
 
 NOTE: the license only applies to the Jekyll template code, not to the blogging content.
